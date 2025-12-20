@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Home, BookOpen, Users, FileText, GraduationCap, FolderOpen, Award, Newspaper, Mail, LogIn, Check, AlertCircle, Calendar, Lightbulb } from 'lucide-react';
+import { API_URL } from './config';
 
 // Schools Page
 const SchoolsPage = () => {
@@ -459,7 +460,7 @@ const ContactPage = () => {
     }
     
     try {
-      const response = await fetch('http://localhost:8000/email/contact', {
+      const response = await fetch(`${API_URL}/email/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -639,7 +640,7 @@ const DashboardPage = ({ user, logout }) => {
   const fetchEvents = async () => {
     try {
       const token = sessionStorage.getItem('prism_token');
-      const response = await fetch('http://localhost:8000/events/', {
+      const response = await fetch(\\/events/', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -657,7 +658,7 @@ const DashboardPage = ({ user, logout }) => {
   const fetchServiceHours = async () => {
     try {
       const token = sessionStorage.getItem('prism_token');
-      const response = await fetch('http://localhost:8000/service-hours/', {
+      const response = await fetch(\\/service-hours/', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -676,7 +677,7 @@ const DashboardPage = ({ user, logout }) => {
     if (user.role !== 'admin' && user.role !== 'president') return;
     try {
       const token = sessionStorage.getItem('prism_token');
-      const response = await fetch('http://localhost:8000/users/', {
+      const response = await fetch(`${API_URL}/users/`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -721,7 +722,7 @@ const DashboardPage = ({ user, logout }) => {
 
     try {
       const token = sessionStorage.getItem('prism_token');
-      const response = await fetch('http://localhost:8000/auth/register-member', {
+      const response = await fetch(`${API_URL}/auth/register-member`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -765,7 +766,7 @@ const DashboardPage = ({ user, logout }) => {
     
     try {
       const token = sessionStorage.getItem('prism_token');
-      const response = await fetch('http://localhost:8000/events/', {
+      const response = await fetch(\\/events/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -797,7 +798,7 @@ const DashboardPage = ({ user, logout }) => {
     
     try {
       const token = sessionStorage.getItem('prism_token');
-      const response = await fetch(`http://localhost:8000/events/${id}`, {
+      const response = await fetch(`${API_URL}/events/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -827,7 +828,7 @@ const DashboardPage = ({ user, logout }) => {
     
     try {
       const token = sessionStorage.getItem('prism_token');
-      const response = await fetch('http://localhost:8000/service-hours/', {
+      const response = await fetch(\\/service-hours/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -855,7 +856,7 @@ const DashboardPage = ({ user, logout }) => {
   const approveServiceHour = async (id, status, rejectionReason = null) => {
     try {
       const token = sessionStorage.getItem('prism_token');
-      const response = await fetch(`http://localhost:8000/service-hours/${id}/approve`, {
+      const response = await fetch(`${API_URL}/service-hours/${id}/approve`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -883,7 +884,7 @@ const DashboardPage = ({ user, logout }) => {
     
     try {
       const token = sessionStorage.getItem('prism_token');
-      const response = await fetch(`http://localhost:8000/service-hours/${id}`, {
+      const response = await fetch(`${API_URL}/service-hours/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -906,7 +907,7 @@ const DashboardPage = ({ user, logout }) => {
   const updateUserRole = async (userId, newRole) => {
     try {
       const token = sessionStorage.getItem('prism_token');
-      const response = await fetch(`http://localhost:8000/users/${userId}/role`, {
+      const response = await fetch(`${API_URL}/users/${userId}/role`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -942,7 +943,7 @@ const DashboardPage = ({ user, logout }) => {
 
     try {
       const token = sessionStorage.getItem('prism_token');
-      const response = await fetch(`http://localhost:8000/users/${userId}`, {
+      const response = await fetch(`${API_URL}/users/${userId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -1825,7 +1826,7 @@ const useAuth = () => {
 
   const login = async (email, password) => {
     try {
-      const response = await fetch('http://localhost:8000/auth/login', {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1844,7 +1845,7 @@ const useAuth = () => {
       sessionStorage.setItem('prism_token', data.access_token);
       
       // Fetch user info
-      const userResponse = await fetch('http://localhost:8000/auth/me', {
+      const userResponse = await fetch(`${API_URL}/auth/me`, {
         headers: {
           'Authorization': `Bearer ${data.access_token}`,
         },
@@ -2409,7 +2410,7 @@ const ApplicationPage = () => {
     }
     
     try {
-      const response = await fetch('http://localhost:8000/email/application', {
+      const response = await fetch(`${API_URL}/email/application`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
