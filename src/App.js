@@ -640,7 +640,7 @@ const DashboardPage = ({ user, logout }) => {
   const fetchEvents = async () => {
     try {
       const token = sessionStorage.getItem('prism_token');
-      const response = await fetch(\\/events/', {
+      const response = await fetch(`${API_URL}/events/`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -658,7 +658,7 @@ const DashboardPage = ({ user, logout }) => {
   const fetchServiceHours = async () => {
     try {
       const token = sessionStorage.getItem('prism_token');
-      const response = await fetch(\\/service-hours/', {
+      const response = await fetch(`${API_URL}/service-hours/`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -766,7 +766,7 @@ const DashboardPage = ({ user, logout }) => {
     
     try {
       const token = sessionStorage.getItem('prism_token');
-      const response = await fetch(\\/events/', {
+      const response = await fetch(`${API_URL}/events/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -799,7 +799,7 @@ const DashboardPage = ({ user, logout }) => {
     try {
       const token = sessionStorage.getItem('prism_token');
       const response = await fetch(`${API_URL}/events/${id}`, {
-        method: 'DELETE',
+        method: `DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -828,7 +828,7 @@ const DashboardPage = ({ user, logout }) => {
     
     try {
       const token = sessionStorage.getItem('prism_token');
-      const response = await fetch(\\/service-hours/', {
+      const response = await fetch(`${API_URL}/service-hours/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -857,7 +857,7 @@ const DashboardPage = ({ user, logout }) => {
     try {
       const token = sessionStorage.getItem('prism_token');
       const response = await fetch(`${API_URL}/service-hours/${id}/approve`, {
-        method: 'PATCH',
+        method: `PATCH',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
@@ -885,7 +885,7 @@ const DashboardPage = ({ user, logout }) => {
     try {
       const token = sessionStorage.getItem('prism_token');
       const response = await fetch(`${API_URL}/service-hours/${id}`, {
-        method: 'DELETE',
+        method: `DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -908,7 +908,7 @@ const DashboardPage = ({ user, logout }) => {
     try {
       const token = sessionStorage.getItem('prism_token');
       const response = await fetch(`${API_URL}/users/${userId}/role`, {
-        method: 'PATCH',
+        method: `PATCH',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
@@ -944,7 +944,7 @@ const DashboardPage = ({ user, logout }) => {
     try {
       const token = sessionStorage.getItem('prism_token');
       const response = await fetch(`${API_URL}/users/${userId}`, {
-        method: 'DELETE',
+        method: `DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
         },
