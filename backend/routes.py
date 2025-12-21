@@ -298,10 +298,10 @@ async def create_service_hour(
 async def approve_service_hour(
     hour_id: str,
     approval: ServiceHourApproval,
-    current_user: UserInDB = Depends(get_current_admin)
+    current_user: UserInDB = Depends(get_current_admin_or_president)
 ):
-    """Approve or reject service hours (admin only)"""
-    from auth import get_current_admin
+    """Approve or reject service hours (admin or president)"""
+    from auth import get_current_admin_or_president
     from models import ServiceHourApproval, ServiceHourStatus
     db = get_database()
 
