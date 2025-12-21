@@ -18,6 +18,7 @@ class ApplicationEmail(BaseModel):
     lastName: str
     email: EmailStr
     phone: Optional[str] = ""
+    location: str
     schoolType: str  # "highschool" or "college"
     school: str  # Changed from highSchool
     grade: str
@@ -96,6 +97,7 @@ async def send_application_email(application: ApplicationEmail):
         <p><strong>Name:</strong> {application.firstName} {application.lastName}</p>
         <p><strong>Email:</strong> {application.email}</p>
         <p><strong>Phone:</strong> {application.phone or 'Not provided'}</p>
+        <p><strong>Location:</strong> {application.location}</p>
         
         <h3>School Information</h3>
         <p><strong>Student Type:</strong> {'High School' if application.schoolType == 'highschool' else 'College'}</p>
