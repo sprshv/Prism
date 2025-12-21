@@ -1480,7 +1480,7 @@ const DashboardPage = ({ user, logout }) => {
                       </div>
                       <p className="text-slate-600 mb-4">{hour.description}</p>
                       
-                      {(user.role === 'admin' || user.role === 'president') && hour.status === 'pending' && (
+                      {((user.role === 'admin') || (user.role === 'president' && hour.user_id !== user.id)) && hour.status === 'pending' && (
                         <div className="flex space-x-3">
                           <button
                             onClick={() => approveServiceHour(hour.id, 'approved')}
