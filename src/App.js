@@ -1010,7 +1010,7 @@ const DashboardPage = ({ user, logout }) => {
               <Award className="w-5 h-5 inline mr-2" />
               Service Hours
             </button>
-            {user.role === 'officer' && (
+            {(user.role === 'officer' || user.role === 'president' || user.role === 'admin') && (
               <button
                 onClick={() => setActiveTab('register')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
@@ -1206,8 +1206,8 @@ const DashboardPage = ({ user, logout }) => {
           </div>
         )}
 
-        {/* Register Tab (Officers Only) */}
-        {activeTab === 'register' && user.role === 'officer' && (
+        {/* Register Tab (Officers, President, Admin) */}
+        {activeTab === 'register' && (user.role === 'officer' || user.role === 'president' || user.role === 'admin') && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-blue-900 mb-2">Register New User</h2>
