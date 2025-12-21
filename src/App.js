@@ -278,7 +278,7 @@ const LeadershipPage = () => {
             <h2 className="text-3xl font-bold text-center text-blue-900 mb-6">Our Leadership Philosophy</h2>
             <p className="text-center text-slate-600 mb-12 max-w-3xl mx-auto">
               <span className="text-yellow-500">PRISM</span> is built on the belief that students can effectively teach and inspire other students. Our leadership
-              structure empowers high school students to take ownership of their learning while developing real-world
+              structure empowers high school and college students to take ownership of their learning while developing real-world
               leadership skills.
             </p>
             <div className="grid md:grid-cols-4 gap-6">
@@ -2053,7 +2053,7 @@ const HomePage = () => {
               </div>
               <h3 className="text-xl font-bold mb-4 text-blue-900">Student-Led Approach</h3>
               <p className="text-slate-600 leading-relaxed">
-                High school students serve as relatable mentors, making STEM feel accessible and exciting for
+                high school and college students serve as relatable mentors, making STEM feel accessible and exciting for
                 younger learners through peer-to-peer connections.
               </p>
             </div>
@@ -2118,7 +2118,7 @@ const AboutPage = () => {
             <span className="text-yellow-500">PRISM</span>
           </h1>
           <p className="text-xl text-center text-slate-600 max-w-4xl mx-auto leading-relaxed">
-            We're a passionate community of high school students dedicated to igniting curiosity and
+            We're a passionate community of high school and college students dedicated to igniting curiosity and
             fostering a love for STEM in the next generation of innovators.
           </p>
         </div>
@@ -2168,13 +2168,13 @@ const AboutPage = () => {
               <p>
                 <span className="text-yellow-500">PRISM</span> began with a simple observation: many elementary students have never been exposed to the
                 incredible possibilities that STEM careers offer. Our founding members, a group of passionate
-                high school students, recognized the need to bridge this gap early in a child's educational
+                high school and college students, recognized the need to bridge this gap early in a child's educational
                 journey.
               </p>
               <p>
                 What started as a small initiative has grown into a comprehensive program that brings the
                 excitement of scientific discovery directly to young learners. We believe that when children see
-                STEM through the eyes of relatable mentors—high school students who remember what it's like to
+                STEM through the eyes of relatable mentors—high school and college students who remember what it's like to
                 be their age—the impact is profound.
               </p>
               <p>
