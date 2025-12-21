@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Home, BookOpen, Users, FileText, GraduationCap, FolderOpen, Award, Newspaper, Mail, LogIn, Check, AlertCircle, Calendar, Lightbulb } from 'lucide-react';
+import { Home, BookOpen, Users, FileText, GraduationCap, FolderOpen, Award, Newspaper, Mail, LogIn, Check, AlertCircle, Calendar, Lightbulb, MapPin } from 'lucide-react';
 import { API_URL } from './config';
 
 // Schools Page
@@ -2005,7 +2005,7 @@ const HomePage = () => {
                 </div>
                 <div className="absolute -top-4 -right-4 bg-white rounded-lg shadow-lg p-3">
                   <div className="flex items-center space-x-2">
-                    <Award className="w-6 h-6 text-yellow-500" />
+                    <MapPin className="w-6 h-6 text-yellow-500" />
                     <div>
                       <div className="text-xs text-slate-600">Locations</div>
                       <div className="text-sm font-semibold">Serving parts of LA and San Diego</div>
@@ -2428,8 +2428,25 @@ const ApplicationPage = () => {
       setTimeout(() => {
         setSubmitted(false);
         setFormData({
-          firstName: '', lastName: '', email: '', phone: '', highSchool: '', grade: '',
-          weightedGPA: '', unweightedGPA: '', stemClasses: '', programInterests: '', whyJoin: '', experience: ''
+          firstName: '',
+          lastName: '',
+          email: '',
+          phone: '',
+          location: '',
+          schoolType: '',
+          school: '',
+          grade: '',
+          weightedGPA: '',
+          unweightedGPA: '',
+          stemClasses: '',
+          programInterests: '',
+          whyJoin: '',
+          experience: '',
+          availability: '',
+          interestedInOfficer: false,
+          interestedInSoftwareDev: false,
+          understandsCommitment: false,
+          agreeToContact: false
         });
       }, 3000);
     } catch (error) {
