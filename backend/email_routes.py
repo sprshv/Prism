@@ -1,11 +1,13 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, EmailStr
 from typing import Optional
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+import resend
+from config import settings
 
 email_router = APIRouter(prefix="/email", tags=["email"])
+
+# Initialize Resend with API key
+resend.api_key = settings.resend_api_key
 
 class ContactEmail(BaseModel):
     name: str
@@ -35,25 +37,17 @@ class ApplicationEmail(BaseModel):
     agreeToContact: Optional[bool] = False
 
 def send_email(to_email: str, subject: str, body: str):
-    """Send email using Gmail SMTP"""
+    """Send email using Resend API"""
     try:
-        # Gmail SMTP configuration
-        from config import settings
-        sender_email = settings.smtp_email
-        sender_password = settings.smtp_password
+        params = {
+            "from": settings.email_from,
+            "to": [to_email],
+            "subject": subject,
+            "html": body,
+        }
         
-        msg = MIMEMultipart()
-        msg['From'] = sender_email
-        msg['To'] = to_email
-        msg['Subject'] = subject
-        msg.attach(MIMEText(body, 'html'))
-        
-        # Send email via Gmail SMTP
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
-            server.login(sender_email, sender_password)
-            server.send_message(msg)
-        
-        print(f"Email sent successfully to {to_email}")
+        response = resend.Emails.send(params)
+        print(f"Email sent successfully to {to_email}. ID: {response.get('id')}")
         return True
     except Exception as e:
         print(f"Error sending email: {str(e)}")

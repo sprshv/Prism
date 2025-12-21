@@ -8,9 +8,9 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     
-    # SMTP Email settings
-    smtp_email: str = ""
-    smtp_password: str = ""
+    # Email settings
+    resend_api_key: str = ""
+    email_from: str = "PRISM <onboarding@resend.dev>"  # Update this after domain verification
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
