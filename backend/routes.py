@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from datetime import timedelta, datetime
 from config import settings
 from models import LoginRequest, Token, User, RegisterMemberRequest, RegisterMemberResponse, UserInDB, UserRole, EventCreate, Event, UpdateUserRole, ServiceHourCreate, ServiceHourStatus, ServiceHourApproval
-from auth import verify_password, get_password_hash, create_access_token, get_current_officer, get_current_active_user, get_current_admin_or_president, get_current_officer_or_higher
+from auth import verify_password, get_password_hash, create_access_token, get_current_officer, get_current_active_user, get_current_admin_or_president, get_current_officer_or_higher, get_current_admin
 from database import get_database
 from bson import ObjectId
 
