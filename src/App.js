@@ -1728,11 +1728,8 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid md:grid-cols-4 gap-8">
           <div>
-            <div className="text-xl font-bold mb-4">
-              <span className="text-white">PR</span>
-              <span className="bg-gradient-to-r from-yellow-300 to-yellow-500 bg-clip-text text-transparent">I</span>
-              <span className="text-white">S</span>
-              <span className="bg-gradient-to-r from-orange-300 to-orange-500 bg-clip-text text-transparent">M</span>
+            <div className="text-xl font-bold mb-4 text-yellow-500">
+              PRISM
             </div>
             <p className="text-sm">Promoting Research, Innovation, Science & Math</p>
           </div>
