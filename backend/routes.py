@@ -37,9 +37,9 @@ async def login(login_request: LoginRequest):
 @router.post("/register-member", response_model=RegisterMemberResponse)
 async def register_member(
     member_data: RegisterMemberRequest,
-    current_user: UserInDB = Depends(get_current_officer)
+    current_user: UserInDB = Depends(get_current_officer_or_higher)
 ):
-    """Officer-only endpoint to register new members or officers"""
+    """Register new members or officers (officers, president, admin)"""
     db = get_database()
 
     full_name = f"{member_data.first_name} {member_data.last_name}"
@@ -114,9 +114,9 @@ async def get_events(current_user: UserInDB = Depends(get_current_active_user)):
 @event_router.post("/")
 async def create_event(
     event_data: EventCreate,
-    current_user: UserInDB = Depends(get_current_officer)
+    current_user: UserInDB = Depends(get_current_officer_or_higher)
 ):
-    """Create a new event (officers only)"""
+    """Create a new event (officers, president, admin)"""
     db = get_database()
 
     event_dict = {
@@ -139,9 +139,9 @@ async def create_event(
 @event_router.delete("/{event_id}")
 async def delete_event(
     event_id: str,
-    current_user: UserInDB = Depends(get_current_officer)
+    current_user: UserInDB = Depends(get_current_officer_or_higher)
 ):
-    """Delete an event (officers only)"""
+    """Delete an event (officers, president, admin)"""
     db = get_database()
 
     try:
