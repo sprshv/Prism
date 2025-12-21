@@ -1997,13 +1997,12 @@ const HomePage = () => {
             </div>
             <div className="relative">
               <div className="bg-white rounded-2xl shadow-xl p-6">
-                <div className="aspect-video bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="w-32 h-32 bg-white rounded-full shadow-lg mx-auto mb-4 flex items-center justify-center">
-                      <GraduationCap className="w-16 h-16 text-blue-900" />
-                    </div>
-                    <p className="text-sm text-slate-600">[Students learning STEM]</p>
-                  </div>
+                <div className="aspect-video bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg overflow-hidden">
+                  <img 
+                    src="/prism-workshop.png" 
+                    alt="PRISM students learning STEM through hands-on activities" 
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <div className="absolute -top-4 -right-4 bg-white rounded-lg shadow-lg p-3">
                   <div className="flex items-center space-x-2">
