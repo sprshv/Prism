@@ -2197,7 +2197,7 @@ const AboutPage = () => {
             </div>
           </div>
           <div className="grid md:grid-cols-2 gap-8">
-            <div>
+            <div className="bg-white rounded-xl p-6 border-2 border-gray-200 hover:border-yellow-300 transition-all">
               <h3 className="text-xl font-bold text-blue-900 mb-3">Critical Window</h3>
               <p className="text-slate-600 leading-relaxed">
                 Research shows that children's interest in STEM subjects is largely formed by middle school. By
@@ -2205,7 +2205,7 @@ const AboutPage = () => {
                 stereotypes and misconceptions take hold.
               </p>
             </div>
-            <div>
+            <div className="bg-white rounded-xl p-6 border-2 border-gray-200 hover:border-yellow-300 transition-all">
               <h3 className="text-xl font-bold text-blue-900 mb-3">Future Opportunities</h3>
               <p className="text-slate-600 leading-relaxed">
                 STEM careers are among the fastest-growing fields, offering excellent opportunities for
@@ -2213,7 +2213,7 @@ const AboutPage = () => {
                 students see these paths as achievable.
               </p>
             </div>
-            <div>
+            <div className="bg-white rounded-xl p-6 border-2 border-gray-200 hover:border-yellow-300 transition-all">
               <h3 className="text-xl font-bold text-blue-900 mb-3">Building Confidence</h3>
               <p className="text-slate-600 leading-relaxed">
                 Hands-on STEM activities build critical thinking, creativity, and problem-solving skills. When
@@ -2221,7 +2221,7 @@ const AboutPage = () => {
                 subjects.
               </p>
             </div>
-            <div>
+            <div className="bg-white rounded-xl p-6 border-2 border-gray-200 hover:border-yellow-300 transition-all">
               <h3 className="text-xl font-bold text-blue-900 mb-3">Inclusive Learning</h3>
               <p className="text-slate-600 leading-relaxed">
                 By reaching students early, we can help ensure that STEM fields become more diverse and
