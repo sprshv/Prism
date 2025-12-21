@@ -1362,10 +1362,10 @@ const DashboardPage = ({ user, logout }) => {
                 <div>
                   <h2 className="text-2xl font-bold text-blue-900 mb-2">Service Hours</h2>
                   <p className="text-slate-600">
-                    {user.role === 'admin' || user.role === 'president' ? 'Review and approve service hour submissions' : 'Log your volunteer hours'}
+                    {user.role === 'admin' ? 'Review and approve service hour submissions' : 'Log your volunteer hours'}
                   </p>
                 </div>
-                {(user.role === 'member' || user.role === 'officer') && (
+                {(user.role === 'member' || user.role === 'officer' || user.role === 'president') && (
                   <button
                     onClick={() => setShowServiceHourForm(!showServiceHourForm)}
                     className="px-4 py-2 bg-blue-900 text-white rounded-md hover:bg-blue-800 transition-colors flex items-center"
@@ -1376,7 +1376,7 @@ const DashboardPage = ({ user, logout }) => {
                 )}
               </div>
 
-              {showServiceHourForm && (user.role === 'member' || user.role === 'officer') && (
+              {showServiceHourForm && (user.role === 'member' || user.role === 'officer' || user.role === 'president') && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
                   <h3 className="text-lg font-semibold text-blue-900 mb-4">Log Service Hours</h3>
                   <form onSubmit={handleServiceHourSubmit} className="space-y-4">
@@ -1480,7 +1480,7 @@ const DashboardPage = ({ user, logout }) => {
                       </div>
                       <p className="text-slate-600 mb-4">{hour.description}</p>
                       
-                      {(user.role === 'admin' || user.role === 'president') && hour.status === 'pending' && (
+                      {user.role === 'admin' && hour.status === 'pending' && (
                         <div className="flex space-x-3">
                           <button
                             onClick={() => approveServiceHour(hour.id, 'approved')}

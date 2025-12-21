@@ -72,6 +72,14 @@ async def get_current_admin_or_president(current_user: UserInDB = Depends(get_cu
         )
     return current_user
 
+async def get_current_admin(current_user: UserInDB = Depends(get_current_active_user)) -> UserInDB:
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can perform this action"
+        )
+    return current_user
+
 async def get_current_officer_or_higher(current_user: UserInDB = Depends(get_current_active_user)) -> UserInDB:
     if current_user.role not in [UserRole.OFFICER, UserRole.PRESIDENT, UserRole.ADMIN]:
         raise HTTPException(
