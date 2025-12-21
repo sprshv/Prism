@@ -1966,8 +1966,7 @@ const HomePage = () => {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <h1 className="text-6xl md:text-7xl font-bold mb-6 leading-tight">
-                <span className="text-blue-900">In</span>
-                <span className="bg-gradient-to-r from-orange-500 to-yellow-500 bg-clip-text text-transparent">spiring</span>
+                <span className="text-blue-900">Inspiring</span>
                 <br />
                 <span className="text-blue-900">Young Minds in</span>
                 <br />
@@ -2008,8 +2007,8 @@ const HomePage = () => {
                   <div className="flex items-center space-x-2">
                     <Award className="w-6 h-6 text-yellow-500" />
                     <div>
-                      <div className="text-xs text-slate-600">Excellence</div>
-                      <div className="text-sm font-semibold">Award-winning program</div>
+                      <div className="text-xs text-slate-600">Locations</div>
+                      <div className="text-sm font-semibold">Serving parts of LA and San Diego</div>
                     </div>
                   </div>
                 </div>
