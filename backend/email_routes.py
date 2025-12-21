@@ -18,7 +18,8 @@ class ApplicationEmail(BaseModel):
     lastName: str
     email: EmailStr
     phone: Optional[str] = ""
-    highSchool: str
+    schoolType: str  # "highschool" or "college"
+    school: str  # Changed from highSchool
     grade: str
     weightedGPA: Optional[str] = ""
     unweightedGPA: Optional[str] = ""
@@ -28,6 +29,7 @@ class ApplicationEmail(BaseModel):
     experience: Optional[str] = ""
     availability: Optional[str] = ""
     interestedInOfficer: Optional[bool] = False
+    interestedInSoftwareDev: Optional[bool] = False  # New field
     understandsCommitment: bool
     agreeToContact: Optional[bool] = False
 
@@ -96,8 +98,9 @@ async def send_application_email(application: ApplicationEmail):
         <p><strong>Phone:</strong> {application.phone or 'Not provided'}</p>
         
         <h3>School Information</h3>
-        <p><strong>High School:</strong> {application.highSchool}</p>
-        <p><strong>Grade:</strong> {application.grade}</p>
+        <p><strong>Student Type:</strong> {'High School' if application.schoolType == 'highschool' else 'College'}</p>
+        <p><strong>{'High School' if application.schoolType == 'highschool' else 'University'}:</strong> {application.school}</p>
+        <p><strong>{'Grade' if application.schoolType == 'highschool' else 'Year'}:</strong> {application.grade}</p>
         <p><strong>Weighted GPA:</strong> {application.weightedGPA or 'Not provided'}</p>
         <p><strong>Unweighted GPA:</strong> {application.unweightedGPA or 'Not provided'}</p>
         
@@ -120,6 +123,7 @@ async def send_application_email(application: ApplicationEmail):
         
         <h3>Additional Information</h3>
         <p><strong>Interested in Officer Position:</strong> {'Yes' if application.interestedInOfficer else 'No'}</p>
+        <p><strong>Interested in Software Development Role:</strong> {'Yes' if application.interestedInSoftwareDev else 'No'}</p>
         <p><strong>Understands Commitment:</strong> {'Yes' if application.understandsCommitment else 'No'}</p>
         <p><strong>Agrees to be Contacted:</strong> {'Yes' if application.agreeToContact else 'No'}</p>
     </body>
