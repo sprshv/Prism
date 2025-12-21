@@ -14,7 +14,7 @@ const SchoolsPage = () => {
             <span className="text-blue-900"> to Your School</span>
           </h1>
           <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-            Inspire your elementary students with engaging, hands-on STEM workshops led by passionate high school mentors
+            Inspire your elementary students with engaging, hands-on STEM workshops led by passionate high school and college mentors
           </p>
         </div>
       </section>
@@ -254,7 +254,7 @@ const LeadershipPage = () => {
     { icon: '🎯', title: 'Events Manager', desc: 'Manages event logistics, resources, and coordination', responsibilities: ['Coordinate transportation and materials for workshops', 'Maintain inventory of educational supplies and equipment', 'Handle event planning and execution logistics', 'Manage event budgets and resource allocation'], color: 'bg-blue-50 border-blue-200' },
     { icon: '💛', title: 'VP of Community Services', desc: 'Leads community outreach and service initiatives', responsibilities: ['Develop community service projects and partnerships', 'Coordinate volunteer opportunities for mentors', 'Engage with local organizations and nonprofits', 'Organize community impact events and initiatives'], color: 'bg-yellow-50 border-yellow-200' },
     { icon: '🌐', title: 'Director of Outreach', desc: 'Expands program reach and builds external partnerships', responsibilities: ['Identify and connect with new partner schools', 'Build relationships with STEM organizations', 'Coordinate with college mentor programs', 'Develop strategies for program expansion'], color: 'bg-orange-50 border-orange-200' },
-    { icon: '👥', title: 'Membership Director', desc: 'Manages mentor recruitment and membership engagement', responsibilities: ['Recruit and onboard new high school mentors', 'Coordinate mentor training and development programs', 'Maintain mentor database and participation records', 'Plan team building and member appreciation events'], color: 'bg-pink-50 border-pink-200' },
+    { icon: '👥', title: 'Membership Director', desc: 'Manages mentor recruitment and membership engagement', responsibilities: ['Recruit and onboard new high school and college mentors', 'Coordinate mentor training and development programs', 'Maintain mentor database and participation records', 'Plan team building and member appreciation events'], color: 'bg-pink-50 border-pink-200' },
     { icon: '💬', title: 'Communications Officer', desc: 'Writers and makers of website, digital communications', responsibilities: ['Maintain and update the PRISM website', 'Create digital content and newsletters', 'Manage internal team communications', 'Document program activities and create reports'], color: 'bg-indigo-50 border-indigo-200' }
   ];
 
@@ -2018,7 +2018,7 @@ const HomePage = () => {
                     <Users className="w-6 h-6 text-blue-900" />
                     <div>
                       <div className="text-xs text-slate-600">Student-Led</div>
-                      <div className="text-sm font-semibold">High school mentors</div>
+                      <div className="text-sm font-semibold">high school and college mentors</div>
                     </div>
                   </div>
                 </div>
@@ -2035,7 +2035,7 @@ const HomePage = () => {
           </h2>
           <p className="text-center text-slate-600 max-w-4xl mx-auto text-lg leading-relaxed">
             <span className="text-yellow-500">PRISM</span> is dedicated to inspiring elementary students to explore STEM careers through engaging
-            workshops and presentations led by passionate high school mentors. We believe every child deserves
+            workshops and presentations led by passionate high school and college mentors. We believe every child deserves
             the opportunity to discover the wonder and possibility within science, technology, engineering, and
             mathematics.
           </p>
@@ -2136,7 +2136,7 @@ const AboutPage = () => {
               </h2>
               <p className="text-slate-600 leading-relaxed">
                 To inspire and educate elementary students about STEM careers through engaging, hands-on
-                workshops and presentations led by passionate high school mentors, fostering early interest in
+                workshops and presentations led by passionate high school and college mentors, fostering early interest in
                 science, technology, engineering, and mathematics.
               </p>
             </div>
