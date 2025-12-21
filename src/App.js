@@ -2018,7 +2018,7 @@ const HomePage = () => {
                     <Users className="w-6 h-6 text-blue-900" />
                     <div>
                       <div className="text-xs text-slate-600">Student-Led</div>
-                      <div className="text-sm font-semibold">high school and college mentors</div>
+                      <div className="text-sm font-semibold">High school and college mentors</div>
                     </div>
                   </div>
                 </div>
@@ -2053,7 +2053,7 @@ const HomePage = () => {
               </div>
               <h3 className="text-xl font-bold mb-4 text-blue-900">Student-Led Approach</h3>
               <p className="text-slate-600 leading-relaxed">
-                high school and college students serve as relatable mentors, making STEM feel accessible and exciting for
+                High school and college students serve as relatable mentors, making STEM feel accessible and exciting for
                 younger learners through peer-to-peer connections.
               </p>
             </div>
@@ -2283,7 +2283,7 @@ const ProgramsPage = () => {
           <div className="bg-white rounded-2xl p-10 shadow-sm border border-gray-200">
             <h2 className="text-3xl font-bold text-center text-blue-900 mb-6">College Student Mentorship</h2>
             <p className="text-center text-slate-600 mb-12 max-w-3xl mx-auto">
-              Our high school presenters are supported by college students studying STEM fields, providing
+              Our high school presenters are supported by college students studying STEM fields in various universities such as UCLA and UCSD, providing
               additional expertise and real-world insights into STEM careers.
             </p>
             <div className="grid md:grid-cols-2 gap-8">
@@ -2361,7 +2361,8 @@ const ApplicationPage = () => {
     lastName: '',
     email: '',
     phone: '',
-    highSchool: '',
+    schoolType: '',
+    school: '',
     grade: '',
     weightedGPA: '',
     unweightedGPA: '',
@@ -2371,6 +2372,7 @@ const ApplicationPage = () => {
     experience: '',
     availability: '',
     interestedInOfficer: false,
+    interestedInSoftwareDev: false,
     understandsCommitment: false,
     agreeToContact: false
   });
@@ -2391,7 +2393,8 @@ const ApplicationPage = () => {
     if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
     if (!formData.email.trim()) newErrors.email = 'Email is required';
     else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email is invalid';
-    if (!formData.highSchool.trim()) newErrors.highSchool = 'High school is required';
+    if (!formData.school.trim()) newErrors.school = 'School/University is required';
+    if (!formData.schoolType) newErrors.schoolType = 'Please select if you are in high school or college';
     if (!formData.grade) newErrors.grade = 'Grade is required';
     if (!formData.understandsCommitment) newErrors.understandsCommitment = 'You must acknowledge the commitment required';
     return newErrors;
@@ -2458,7 +2461,7 @@ const ApplicationPage = () => {
             <span className="text-blue-900"> Team</span>
           </h1>
           <p className="text-xl text-slate-600">
-            Become a high school mentor and help inspire the next generation of STEM leaders
+            Become a high school or college mentor and help inspire the next generation of STEM leaders
           </p>
         </div>
 
@@ -2484,8 +2487,8 @@ const ApplicationPage = () => {
             <div className="flex items-start space-x-3">
               <Check className="w-6 h-6 text-yellow-500 flex-shrink-0 mt-1" />
               <div>
-                <h3 className="font-semibold text-blue-900">High School Student</h3>
-                <p className="text-slate-600 text-sm">Currently enrolled in grades 9-12</p>
+                <h3 className="font-semibold text-blue-900">High School or College Student</h3>
+                <p className="text-slate-600 text-sm">Currently enrolled in high school (grades 9-12) or college</p>
               </div>
             </div>
             <div className="flex items-start space-x-3">
@@ -2575,24 +2578,41 @@ const ApplicationPage = () => {
               />
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-blue-900 mb-2">
+                I am currently a <span className="text-red-500">*</span>
+              </label>
+              <select
+                name="schoolType"
+                value={formData.schoolType}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Select one</option>
+                <option value="highschool">High School Student</option>
+                <option value="college">College Student</option>
+              </select>
+              {errors.schoolType && <p className="text-red-500 text-sm mt-1">{errors.schoolType}</p>}
+            </div>
+
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-blue-900 mb-2">
-                  High School <span className="text-red-500">*</span>
+                  {formData.schoolType === 'college' ? 'University Name' : 'High School Name'} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
-                  name="highSchool"
-                  value={formData.highSchool}
+                  name="school"
+                  value={formData.school}
                   onChange={handleChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter your high school name"
+                  placeholder={formData.schoolType === 'college' ? 'Enter your university name' : 'Enter your high school name'}
                 />
-                {errors.highSchool && <p className="text-red-500 text-sm mt-1">{errors.highSchool}</p>}
+                {errors.school && <p className="text-red-500 text-sm mt-1">{errors.school}</p>}
               </div>
               <div>
                 <label className="block text-sm font-medium text-blue-900 mb-2">
-                  Current Grade <span className="text-red-500">*</span>
+                  {formData.schoolType === 'college' ? 'Year' : 'Grade'} <span className="text-red-500">*</span>
                 </label>
                 <select
                   name="grade"
@@ -2600,11 +2620,23 @@ const ApplicationPage = () => {
                   onChange={handleChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="">Select your grade</option>
-                  <option value="9">9th Grade</option>
-                  <option value="10">10th Grade</option>
-                  <option value="11">11th Grade</option>
-                  <option value="12">12th Grade</option>
+                  <option value="">Select your {formData.schoolType === 'college' ? 'year' : 'grade'}</option>
+                  {formData.schoolType === 'college' ? (
+                    <>
+                      <option value="Freshman">Freshman</option>
+                      <option value="Sophomore">Sophomore</option>
+                      <option value="Junior">Junior</option>
+                      <option value="Senior">Senior</option>
+                      <option value="Graduate">Graduate Student</option>
+                    </>
+                  ) : (
+                    <>
+                      <option value="9">9th Grade</option>
+                      <option value="10">10th Grade</option>
+                      <option value="11">11th Grade</option>
+                      <option value="12">12th Grade</option>
+                    </>
+                  )}
                 </select>
                 {errors.grade && <p className="text-red-500 text-sm mt-1">{errors.grade}</p>}
               </div>
@@ -2709,6 +2741,20 @@ const ApplicationPage = () => {
                 <span className="ml-2 text-sm text-gray-700">
                   I'm also interested in applying for an officer position<br />
                   <span className="text-xs text-gray-500">Officer positions involve additional leadership responsibilities and commitment</span>
+                </span>
+              </label>
+
+              <label className="flex items-start">
+                <input
+                  type="checkbox"
+                  name="interestedInSoftwareDev"
+                  checked={formData.interestedInSoftwareDev}
+                  onChange={handleChange}
+                  className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <span className="ml-2 text-sm text-gray-700">
+                  I'm interested in applying for a software development role<br />
+                  <span className="text-xs text-gray-500">Help develop and maintain the PRISM website and digital tools</span>
                 </span>
               </label>
 
