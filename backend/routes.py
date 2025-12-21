@@ -47,12 +47,12 @@ async def register_member(
     # Generate default password (firstname + "123")
     default_password = f"{member_data.first_name.lower()}123"
 
-    # Only admin email can assign president or admin roles
+    # Only admins can assign president or admin roles
     if member_data.role in [UserRole.PRESIDENT, UserRole.ADMIN]:
-        if current_user.email != "prismprogramscv@gmail.com":
+        if current_user.role != UserRole.ADMIN:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Only the main admin can assign president or admin roles"
+                detail="Only admins can assign president or admin roles"
             )
 
     # Check if user already exists
