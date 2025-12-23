@@ -25,11 +25,14 @@ import os
 allowed_origins = [
     "http://localhost:3000",
     "http://localhost:3001",
+    "https://prism-frontend-srf1.onrender.com",
+    "https://prism.publicvm.com",
+    "https://www.prism.publicvm.com",
 ]
 
 # Add production frontend URL from environment variable
 frontend_url = os.getenv("FRONTEND_URL")
-if frontend_url:
+if frontend_url and frontend_url not in allowed_origins:
     allowed_origins.append(frontend_url)
 
 app.add_middleware(
