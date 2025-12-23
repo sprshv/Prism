@@ -36,7 +36,7 @@ class ApplicationEmail(BaseModel):
     understandsCommitment: bool
     agreeToContact: Optional[bool] = False
 
-def send_email(to_email: str, subject: str, body: str):
+def send_email(to_email: str, subject: str, body: str, text_version: str = None):
     """Send email using Resend API"""
     try:
         params = {
@@ -44,7 +44,12 @@ def send_email(to_email: str, subject: str, body: str):
             "to": [to_email],
             "subject": subject,
             "html": body,
+            "reply_to": "prismprogramscv@gmail.com",
         }
+        
+        # Add plain text version if provided (helps with spam filters)
+        if text_version:
+            params["text"] = text_version
         
         response = resend.Emails.send(params)
         print(f"Email sent successfully to {to_email}. ID: {response.get('id')}")

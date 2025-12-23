@@ -123,28 +123,78 @@ async def forgot_password(request: PasswordResetRequest):
     
     reset_link = f"{settings.frontend_url}/#/reset-password?token={reset_token}"
     
+    # Get user's name for personalization
+    user_name = user.get("name", "").split()[0] if user.get("name") else "there"
+    
     email_body = f"""
     <html>
-        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #6366f1;">Reset Your PRISM Password</h2>
-            <p>You requested to reset your password. Click the link below to set a new password:</p>
-            <p style="margin: 30px 0;">
-                <a href="{reset_link}" style="background-color: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
-                    Reset Password
-                </a>
-            </p>
-            <p>This link will expire in 1 hour.</p>
-            <p>If you didn't request this, please ignore this email.</p>
-            <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
-            <p style="color: #6b7280; font-size: 14px;">PRISM - Promoting Responsibility In Service to Members</p>
+        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background-color: #1e3a8a; padding: 20px; text-align: center;">
+                <h1 style="color: #fbbf24; margin: 0;">PRISM</h1>
+                <p style="color: white; margin: 5px 0;">Promoting Research, Innovation, Science & Math</p>
+            </div>
+            
+            <div style="padding: 30px; background-color: #f9fafb;">
+                <h2 style="color: #1e3a8a;">Password Reset Request</h2>
+                <p>Hi {user_name},</p>
+                <p>We received a request to reset the password for your PRISM account ({request.email}). If you made this request, click the button below to set a new password:</p>
+                
+                <p style="margin: 30px 0; text-align: center;">
+                    <a href="{reset_link}" style="background-color: #1e3a8a; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
+                        Reset My Password
+                    </a>
+                </p>
+                
+                <p>Or copy and paste this link into your browser:</p>
+                <p style="background-color: white; padding: 10px; border: 1px solid #e5e7eb; word-break: break-all; font-size: 12px;">
+                    {reset_link}
+                </p>
+                
+                <p style="margin-top: 30px;"><strong>This link will expire in 1 hour.</strong></p>
+                <p>If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.</p>
+                
+                <p style="margin-top: 30px;">Best regards,<br>The PRISM Team</p>
+            </div>
+            
+            <div style="padding: 20px; text-align: center; color: #6b7280; font-size: 12px; background-color: #f3f4f6;">
+                <p>This is an automated message from PRISM. Please do not reply to this email.</p>
+                <p>© 2025 PRISM - Promoting Research, Innovation, Science & Math</p>
+            </div>
         </body>
     </html>
+    """
+    
+    # Plain text version for better deliverability
+    text_version = f"""
+PRISM - Promoting Research, Innovation, Science & Math
+
+Password Reset Request
+
+Hi {user_name},
+
+We received a request to reset the password for your PRISM account ({request.email}). 
+
+To reset your password, click the link below or copy and paste it into your browser:
+
+{reset_link}
+
+This link will expire in 1 hour.
+
+If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.
+
+Best regards,
+The PRISM Team
+
+---
+This is an automated message from PRISM. Please do not reply to this email.
+© 2025 PRISM - Promoting Research, Innovation, Science & Math
     """
     
     send_email(
         to_email=request.email,
         subject="Reset Your PRISM Password",
-        body=email_body
+        body=email_body,
+        text_version=text_version
     )
     
     return {"message": "If the email exists, a password reset link has been sent"}
