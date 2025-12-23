@@ -1,10 +1,11 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from datetime import timedelta, datetime
 from config import settings
-from models import LoginRequest, Token, User, RegisterMemberRequest, RegisterMemberResponse, UserInDB, UserRole, EventCreate, Event, UpdateUserRole, ServiceHourCreate, ServiceHourStatus, ServiceHourApproval
+from models import LoginRequest, Token, User, RegisterMemberRequest, RegisterMemberResponse, UserInDB, UserRole, EventCreate, Event, UpdateUserRole, ServiceHourCreate, ServiceHourStatus, ServiceHourApproval, PasswordResetRequest, PasswordReset
 from auth import verify_password, get_password_hash, create_access_token, get_current_officer, get_current_active_user, get_current_admin_or_president, get_current_officer_or_higher, get_current_admin
 from database import get_database
 from bson import ObjectId
+import secrets
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
 
@@ -93,6 +94,93 @@ async def get_current_user_info(current_user: UserInDB = Depends(get_current_act
         created_at=current_user.created_at,
         is_active=current_user.is_active
     )
+
+@router.post("/forgot-password")
+async def forgot_password(request: PasswordResetRequest):
+    """Request password reset - sends email with reset token"""
+    db = get_database()
+    
+    # Check if user exists
+    user = db.users.find_one({"email": request.email})
+    if not user:
+        # Don't reveal if user exists or not for security
+        return {"message": "If the email exists, a password reset link has been sent"}
+    
+    # Generate secure reset token
+    reset_token = secrets.token_urlsafe(32)
+    
+    # Store token in database with expiration (1 hour)
+    db.password_resets.insert_one({
+        "email": request.email,
+        "token": reset_token,
+        "created_at": datetime.utcnow(),
+        "expires_at": datetime.utcnow() + timedelta(hours=1),
+        "used": False
+    })
+    
+    # Send email with reset link
+    from email_routes import send_email
+    
+    reset_link = f"{settings.frontend_url}/#/reset-password?token={reset_token}"
+    
+    email_body = f"""
+    <html>
+        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #6366f1;">Reset Your PRISM Password</h2>
+            <p>You requested to reset your password. Click the link below to set a new password:</p>
+            <p style="margin: 30px 0;">
+                <a href="{reset_link}" style="background-color: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                    Reset Password
+                </a>
+            </p>
+            <p>This link will expire in 1 hour.</p>
+            <p>If you didn't request this, please ignore this email.</p>
+            <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
+            <p style="color: #6b7280; font-size: 14px;">PRISM - Promoting Responsibility In Service to Members</p>
+        </body>
+    </html>
+    """
+    
+    send_email(
+        to_email=request.email,
+        subject="Reset Your PRISM Password",
+        body=email_body
+    )
+    
+    return {"message": "If the email exists, a password reset link has been sent"}
+
+@router.post("/reset-password")
+async def reset_password(reset_data: PasswordReset):
+    """Reset password using token"""
+    db = get_database()
+    
+    # Find valid reset token
+    reset_request = db.password_resets.find_one({
+        "token": reset_data.token,
+        "used": False,
+        "expires_at": {"$gt": datetime.utcnow()}
+    })
+    
+    if not reset_request:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset token"
+        )
+    
+    # Update user password
+    hashed_password = get_password_hash(reset_data.new_password)
+    db.users.update_one(
+        {"email": reset_request["email"]},
+        {"$set": {"hashed_password": hashed_password}}
+    )
+    
+    # Mark token as used
+    db.password_resets.update_one(
+        {"_id": reset_request["_id"]},
+        {"$set": {"used": True}}
+    )
+    
+    return {"message": "Password successfully reset"}
 
 
 # Event endpoints

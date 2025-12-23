@@ -51,6 +51,7 @@ def send_email(to_email: str, subject: str, body: str):
         return True
     except Exception as e:
         print(f"Error sending email: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
         return False
 
 @email_router.post("/contact")

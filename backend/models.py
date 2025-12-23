@@ -43,6 +43,13 @@ class LoginRequest(BaseModel):
     email: EmailStr
     password: str
 
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+class PasswordReset(BaseModel):
+    token: str
+    new_password: str
+
 class RegisterMemberRequest(BaseModel):
     first_name: str
     last_name: str

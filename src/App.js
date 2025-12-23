@@ -1634,6 +1634,9 @@ const AuthPage = ({ login }) => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [forgotPasswordMessage, setForgotPasswordMessage] = useState('');
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -1659,6 +1662,108 @@ const AuthPage = ({ login }) => {
       setLoading(false);
     }
   };
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    if (!forgotPasswordEmail) {
+      setError('Please enter your email');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    setForgotPasswordMessage('');
+    
+    try {
+      const response = await fetch(`${API_URL}/auth/forgot-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: forgotPasswordEmail }),
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        setForgotPasswordMessage('If your email is registered, you will receive a password reset link shortly.');
+        setForgotPasswordEmail('');
+      } else {
+        // Handle both string and object error formats
+        const errorMessage = typeof data.detail === 'string' 
+          ? data.detail 
+          : (Array.isArray(data.detail) ? data.detail[0]?.msg : 'Failed to send reset email');
+        setError(errorMessage || 'Failed to send reset email');
+      }
+    } catch (err) {
+      setError('An error occurred. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (showForgotPassword) {
+    return (
+      <div className="bg-gray-50 flex items-center justify-center py-12 px-4 min-h-[calc(100vh-4rem)]">
+        <div className="max-w-md w-full">
+          <div className="bg-white rounded-2xl shadow-lg p-8">
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold mb-2">Reset Password</h1>
+              <p className="text-slate-600">Enter your email to receive a reset link</p>
+            </div>
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6 flex items-center">
+                <AlertCircle className="w-5 h-5 mr-2" />
+                {error}
+              </div>
+            )}
+
+            {forgotPasswordMessage && (
+              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md mb-6">
+                {forgotPasswordMessage}
+              </div>
+            )}
+
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-blue-900 mb-2">Email</label>
+                <input
+                  type="email"
+                  value={forgotPasswordEmail}
+                  onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="your@email.com"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-blue-900 text-white px-6 py-3 rounded-md font-medium hover:bg-blue-800 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Sending...' : 'Send Reset Link'}
+              </button>
+            </form>
+            
+            <div className="mt-6 text-center">
+              <button
+                onClick={() => {
+                  setShowForgotPassword(false);
+                  setError('');
+                  setForgotPasswordMessage('');
+                }}
+                className="text-blue-900 hover:text-blue-700 text-sm font-medium"
+              >
+                ← Back to Sign In
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gray-50 flex items-center justify-center py-12 px-4 min-h-[calc(100vh-4rem)]">
@@ -1701,6 +1806,16 @@ const AuthPage = ({ login }) => {
                 placeholder="••••••••"
                 required
               />
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowForgotPassword(true)}
+                className="text-sm text-blue-900 hover:text-blue-700 font-medium"
+              >
+                Forgot Password?
+              </button>
             </div>
 
             <button
@@ -1766,6 +1881,173 @@ const Footer = () => {
   );
 };
 
+// Reset Password Page
+const ResetPasswordPage = () => {
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  // Get token from URL
+  const getTokenFromUrl = () => {
+    const hash = window.location.hash;
+    const params = new URLSearchParams(hash.split('?')[1]);
+    return params.get('token');
+  };
+
+  const token = getTokenFromUrl();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!newPassword || !confirmPassword) {
+      setError('Please fill in all fields');
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setError('Password must be at least 8 characters');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    if (!token) {
+      setError('Invalid reset link');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    
+    try {
+      const response = await fetch(`${API_URL}/auth/reset-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          token: token,
+          new_password: newPassword 
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        setSuccess(true);
+        setTimeout(() => {
+          window.location.hash = '/auth';
+        }, 3000);
+      } else {
+        setError(data.detail || 'Failed to reset password');
+      }
+    } catch (err) {
+      setError('An error occurred. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!token) {
+    return (
+      <div className="bg-gray-50 flex items-center justify-center py-12 px-4 min-h-[calc(100vh-4rem)]">
+        <div className="max-w-md w-full">
+          <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
+            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold mb-2">Invalid Reset Link</h1>
+            <p className="text-slate-600 mb-6">This password reset link is invalid or has expired.</p>
+            <a
+              href="#/auth"
+              className="inline-block bg-blue-900 text-white px-6 py-3 rounded-md font-medium hover:bg-blue-800 transition-colors"
+            >
+              Back to Sign In
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (success) {
+    return (
+      <div className="bg-gray-50 flex items-center justify-center py-12 px-4 min-h-[calc(100vh-4rem)]">
+        <div className="max-w-md w-full">
+          <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h1 className="text-2xl font-bold mb-2">Password Reset Successful!</h1>
+            <p className="text-slate-600 mb-6">You can now sign in with your new password.</p>
+            <p className="text-sm text-slate-500">Redirecting to sign in...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-gray-50 flex items-center justify-center py-12 px-4 min-h-[calc(100vh-4rem)]">
+      <div className="max-w-md w-full">
+        <div className="bg-white rounded-2xl shadow-lg p-8">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold mb-2">Set New Password</h1>
+            <p className="text-slate-600">Enter your new password below</p>
+          </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6 flex items-center">
+              <AlertCircle className="w-5 h-5 mr-2" />
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-blue-900 mb-2">New Password</label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="••••••••"
+                required
+              />
+              <p className="text-xs text-slate-500 mt-1">Minimum 8 characters</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-blue-900 mb-2">Confirm Password</label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-blue-900 text-white px-6 py-3 rounded-md font-medium hover:bg-blue-800 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Resetting Password...' : 'Reset Password'}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Main App Component
 export default function App() {
   const { user, login, logout } = useAuth();
@@ -1786,6 +2068,7 @@ export default function App() {
             {currentPath === '/news' && <NewsPage />}
             {currentPath === '/contact' && <ContactPage />}
             {currentPath === '/auth' && !user && <AuthPage login={login} />}
+            {currentPath === '/reset-password' && <ResetPasswordPage />}
             {currentPath === '/dashboard' && user && <DashboardPage user={user} logout={logout} />}
             {currentPath === '/auth' && user && (window.location.hash = '/dashboard', null)}
             {currentPath === '/dashboard' && !user && (window.location.hash = '/auth', null)}
@@ -1799,11 +2082,15 @@ export default function App() {
 
 // Router simulation
 const Router = ({ children }) => {
-  const [currentPath, setCurrentPath] = useState(window.location.hash.slice(1) || '/');
+  const [currentPath, setCurrentPath] = useState(() => {
+    const hash = window.location.hash.slice(1) || '/';
+    return hash.split('?')[0]; // Strip query parameters from path
+  });
 
   useEffect(() => {
     const handleHashChange = () => {
-      setCurrentPath(window.location.hash.slice(1) || '/');
+      const hash = window.location.hash.slice(1) || '/';
+      setCurrentPath(hash.split('?')[0]); // Strip query parameters from path
       window.scrollTo(0, 0);
     };
     window.addEventListener('hashchange', handleHashChange);
