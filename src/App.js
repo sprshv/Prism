@@ -616,7 +616,7 @@ const ContactPage = () => {
 // Dashboard Page
 const DashboardPage = ({ user, logout }) => {
   const [activeTab, setActiveTab] = useState('calendar');
-  const [registerForm, setRegisterForm] = useState({ firstName: '', lastName: '', email: '', role: 'member' });
+  const [registerForm, setRegisterForm] = useState({ firstName: '', lastName: '', email: '', role: 'member', teamId: '' });
   const [registerError, setRegisterError] = useState('');
   const [registerSuccess, setRegisterSuccess] = useState('');
   const [loading, setLoading] = useState(false);
@@ -635,6 +635,13 @@ const DashboardPage = ({ user, logout }) => {
   const [users, setUsers] = useState([]);
   const [editingUserId, setEditingUserId] = useState(null);
   const [newRole, setNewRole] = useState('');
+
+  // Team management state (admin only)
+  const [teams, setTeams] = useState([]);
+  const [newTeam, setNewTeam] = useState({ name: '', description: '' });
+  const [showTeamForm, setShowTeamForm] = useState(false);
+  const [teamError, setTeamError] = useState('');
+  const [teamSuccess, setTeamSuccess] = useState('');
 
   // Fetch events from backend
   const fetchEvents = async () => {
@@ -691,14 +698,56 @@ const DashboardPage = ({ user, logout }) => {
     }
   };
 
+  // Fetch all teams
+  const fetchTeams = async () => {
+    try {
+      const token = sessionStorage.getItem('prism_token');
+      const response = await fetch(`${API_URL}/teams/`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setTeams(data);
+      }
+    } catch (err) {
+      console.error('Error fetching teams:', err);
+    }
+  };
+
+  // Refetch current user data to get updated team_id
+  const refetchUserData = async () => {
+    try {
+      const token = sessionStorage.getItem('prism_token');
+      const response = await fetch(`${API_URL}/auth/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (response.ok) {
+        const userData = await response.json();
+        // Update user object if team_id changed
+        if (userData.team_id !== user.team_id) {
+          sessionStorage.setItem('prism_user', JSON.stringify(userData));
+          window.location.reload(); // Reload to update user state
+        }
+      }
+    } catch (err) {
+      console.error('Error refetching user data:', err);
+    }
+  };
+
   // Fetch events on mount and poll every 5 seconds for updates
   useEffect(() => {
     fetchEvents();
     fetchServiceHours();
     fetchUsers();
+    fetchTeams();
     const interval = setInterval(() => {
       fetchEvents();
       fetchServiceHours();
+      refetchUserData(); // Check for user updates
     }, 5000);
     return () => clearInterval(interval);
   }, []);
@@ -716,24 +765,35 @@ const DashboardPage = ({ user, logout }) => {
       return;
     }
 
+    if (!registerForm.teamId && user.role !== 'admin') {
+      setRegisterError('Please select a team');
+      return;
+    }
+
     setLoading(true);
     setRegisterError('');
     setRegisterSuccess('');
 
     try {
       const token = sessionStorage.getItem('prism_token');
+      const requestBody = {
+        first_name: registerForm.firstName,
+        last_name: registerForm.lastName,
+        email: registerForm.email,
+        role: registerForm.role,
+      };
+      
+      if (registerForm.teamId) {
+        requestBody.team_id = registerForm.teamId;
+      }
+
       const response = await fetch(`${API_URL}/auth/register-member`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          first_name: registerForm.firstName,
-          last_name: registerForm.lastName,
-          email: registerForm.email,
-          role: registerForm.role,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -748,7 +808,8 @@ const DashboardPage = ({ user, logout }) => {
 
       const data = await response.json();
       setRegisterSuccess(`${data.role === 'officer' ? 'Officer' : 'Member'} registered successfully! Email: ${data.email}, Default Password: ${data.default_password}`);
-      setRegisterForm({ firstName: '', lastName: '', email: '', role: 'member' });
+      setRegisterForm({ firstName: '', lastName: '', email: '', role: 'member', teamId: '' });
+      fetchUsers(); // Refresh user list
     } catch (err) {
       setRegisterError(err.message || 'An error occurred during registration');
     } finally {
@@ -903,6 +964,79 @@ const DashboardPage = ({ user, logout }) => {
     }
   };
 
+  // Team management handlers
+  const handleTeamChange = (e) => {
+    setNewTeam({ ...newTeam, [e.target.name]: e.target.value });
+    setTeamError('');
+    setTeamSuccess('');
+  };
+
+  const handleTeamSubmit = async (e) => {
+    e.preventDefault();
+    if (!newTeam.name.trim()) {
+      setTeamError('Team name is required');
+      return;
+    }
+
+    setLoading(true);
+    setTeamError('');
+    setTeamSuccess('');
+
+    try {
+      const token = sessionStorage.getItem('prism_token');
+      const response = await fetch(`${API_URL}/teams/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(newTeam),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to create team');
+      }
+
+      const data = await response.json();
+      setTeamSuccess(`Team "${data.name}" created successfully!`);
+      setNewTeam({ name: '', description: '' });
+      setShowTeamForm(false);
+      await fetchTeams(); // Refresh teams list
+    } catch (err) {
+      setTeamError(err.message || 'An error occurred while creating the team');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteTeam = async (teamId) => {
+    if (!window.confirm('Are you sure you want to delete this team? Users in this team will have their team_id removed.')) {
+      return;
+    }
+
+    try {
+      const token = sessionStorage.getItem('prism_token');
+      const response = await fetch(`${API_URL}/teams/${teamId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        await fetchTeams();
+        await fetchUsers(); // Refresh users as their team associations may have changed
+      } else {
+        const error = await response.json();
+        alert('Error deleting team: ' + (error.detail || 'Unknown error'));
+      }
+    } catch (err) {
+      console.error('Error deleting team:', err);
+      alert('Error deleting team');
+    }
+  };
+
   // User management handlers
   const updateUserRole = async (userId, newRole) => {
     try {
@@ -933,6 +1067,30 @@ const DashboardPage = ({ user, logout }) => {
     } catch (err) {
       console.error('Error updating user role:', err);
       alert('Error updating user role: ' + err.message);
+    }
+  };
+
+  const updateUserTeam = async (userId, teamId) => {
+    try {
+      const token = sessionStorage.getItem('prism_token');
+      const response = await fetch(`${API_URL}/users/${userId}/team`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ team_id: teamId || null }),
+      });
+
+      if (response.ok) {
+        await fetchUsers();
+      } else {
+        const error = await response.json();
+        alert('Error updating user team: ' + (error.detail || 'Unknown error'));
+      }
+    } catch (err) {
+      console.error('Error updating user team:', err);
+      alert('Error updating user team');
     }
   };
 
@@ -974,6 +1132,14 @@ const DashboardPage = ({ user, logout }) => {
               </h1>
               <p className="text-slate-600">
                 Role: <span className="font-semibold capitalize">{user.role}</span>
+                {' | '}
+                Team: <span className="font-semibold">
+                  {!user.team_id 
+                    ? 'No team'
+                    : teams.length === 0
+                      ? 'Loading...'
+                      : (teams.find(t => t.id === user.team_id)?.name || 'Unknown team')}
+                </span>
               </p>
             </div>
             <button
@@ -1184,6 +1350,12 @@ const DashboardPage = ({ user, logout }) => {
                                 <span className="mr-2">📍</span>
                                 <span>{event.location}</span>
                               </div>
+                              {event.team_id && (
+                                <div className="flex items-center text-slate-600">
+                                  <Users className="w-4 h-4 mr-2" />
+                                  <span className="font-medium">Team: {teams.find(t => t.id === event.team_id)?.name || 'Unknown'}</span>
+                                </div>
+                              )}
                               {event.description && (
                                 <p className="text-slate-600 mt-2">{event.description}</p>
                               )}
@@ -1290,13 +1462,42 @@ const DashboardPage = ({ user, logout }) => {
                 >
                   <option value="member">Member</option>
                   <option value="officer">Officer</option>
-                  {user.email === 'prismprogramscv@gmail.com' && (
+                  {user.role === 'admin' && (
                     <>
                       <option value="president">President</option>
                       <option value="admin">Admin</option>
                     </>
                   )}
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-blue-900 mb-2">
+                  Team {user.role !== 'admin' && <span className="text-red-500">*</span>}
+                </label>
+                <select
+                  name="teamId"
+                  value={registerForm.teamId}
+                  onChange={handleRegisterChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required={user.role !== 'admin'}
+                >
+                  <option value="">
+                    {user.role === 'admin' ? 'No Team (Admin only)' : 'Select a team'}
+                  </option>
+                  {teams
+                    .filter(team => user.role === 'admin' || team.id === user.team_id)
+                    .map(team => (
+                      <option key={team.id} value={team.id}>
+                        {team.name}
+                      </option>
+                    ))}
+                </select>
+                <p className="text-xs text-slate-500 mt-1">
+                  {user.role === 'admin' 
+                    ? 'Admins can assign members to any team or leave unassigned' 
+                    : 'You can only register members to your own team'}
+                </p>
               </div>
 
               <button
@@ -1524,103 +1725,526 @@ const DashboardPage = ({ user, logout }) => {
 
         {/* User Management Tab (Admin/President Only) */}
         {activeTab === 'users' && (user.role === 'admin' || user.role === 'president') && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-            <h2 className="text-2xl font-bold text-blue-900 mb-4">User Management</h2>
-            <p className="text-slate-600 mb-6">View all users and manage their roles</p>
-            
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {users.map((u) => (
-                    <tr key={u.id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{u.name}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">{u.email}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {editingUserId === u.id ? (
-                          <select
-                            value={newRole}
-                            onChange={(e) => setNewRole(e.target.value)}
-                            className="px-3 py-1 border border-gray-300 rounded-md text-sm"
-                          >
-                            <option value="">Select role...</option>
-                            <option value="member">Member</option>
-                            <option value="officer">Officer</option>
-                            {user.email === 'prismprogramscv@gmail.com' && (
-                              <>
-                                <option value="president">President</option>
-                                <option value="admin">Admin</option>
-                              </>
-                            )}
-                          </select>
-                        ) : (
-                          <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full capitalize ${
-                            u.role === 'admin' ? 'bg-purple-100 text-purple-800' :
-                            u.role === 'president' ? 'bg-blue-100 text-blue-800' :
-                            u.role === 'officer' ? 'bg-green-100 text-green-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {u.role}
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        {editingUserId === u.id ? (
-                          <div className="flex space-x-2">
-                            <button
-                              onClick={() => updateUserRole(u.id, newRole)}
-                              disabled={!newRole}
-                              className="text-green-600 hover:text-green-900 disabled:text-gray-400"
-                            >
-                              Save
-                            </button>
-                            <button
-                              onClick={() => {
-                                setEditingUserId(null);
-                                setNewRole('');
-                              }}
-                              className="text-gray-600 hover:text-gray-900"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="flex space-x-3">
-                            <button
-                              onClick={() => {
-                                setEditingUserId(u.id);
-                                setNewRole(u.role);
-                              }}
-                              className="text-blue-600 hover:text-blue-900"
-                            >
-                              Change Role
-                            </button>
-                            {user.email === 'prismprogramscv@gmail.com' && u.id !== user.id && (
-                              <button
-                                onClick={() => deleteUser(u.id, u.name)}
-                                className="text-red-600 hover:text-red-900"
-                              >
-                                Delete
-                              </button>
-                            )}
-                          </div>
-                        )}
-                      </td>
-                    </tr>
+          <div className="space-y-6">
+            {/* Team Management Section (Admin Only) */}
+            {user.role === 'admin' && (
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+                <div className="flex justify-between items-center mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-blue-900 mb-2">Team Management</h2>
+                    <p className="text-slate-600">Create and manage teams for organizing members</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowTeamForm(!showTeamForm);
+                      setTeamError('');
+                      setTeamSuccess('');
+                    }}
+                    className="px-4 py-2 bg-blue-900 text-white rounded-md hover:bg-blue-800 transition-colors flex items-center"
+                  >
+                    <Users className="w-4 h-4 mr-2" />
+                    {showTeamForm ? 'Cancel' : 'Create Team'}
+                  </button>
+                </div>
+
+                {teamSuccess && (
+                  <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md mb-6 flex items-center">
+                    <Check className="w-5 h-5 mr-2" />
+                    {teamSuccess}
+                  </div>
+                )}
+
+                {teamError && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6 flex items-center">
+                    <AlertCircle className="w-5 h-5 mr-2" />
+                    {teamError}
+                  </div>
+                )}
+
+                {showTeamForm && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+                    <h3 className="text-lg font-semibold text-blue-900 mb-4">Create New Team</h3>
+                    <form onSubmit={handleTeamSubmit} className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-blue-900 mb-2">
+                          Team Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          name="name"
+                          value={newTeam.name}
+                          onChange={handleTeamChange}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="e.g., Silicon Valley Team"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-blue-900 mb-2">
+                          Description (Optional)
+                        </label>
+                        <textarea
+                          name="description"
+                          value={newTeam.description}
+                          onChange={handleTeamChange}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Brief description of this team..."
+                          rows="3"
+                        />
+                      </div>
+                      <div className="flex space-x-3">
+                        <button
+                          type="submit"
+                          disabled={loading}
+                          className="px-6 py-2 bg-blue-900 text-white rounded-md hover:bg-blue-800 transition-colors disabled:bg-gray-400"
+                        >
+                          {loading ? 'Creating...' : 'Create Team'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowTeamForm(false);
+                            setNewTeam({ name: '', description: '' });
+                            setTeamError('');
+                          }}
+                          className="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+
+                <div className="grid md:grid-cols-3 gap-4">
+                  {teams.map((team) => (
+                    <div key={team.id} className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-semibold text-blue-900">{team.name}</h3>
+                        <button
+                          onClick={() => deleteTeam(team.id)}
+                          className="text-red-600 hover:text-red-900 text-sm"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                      <p className="text-sm text-slate-600 mb-2">{team.description || 'No description'}</p>
+                      <p className="text-xs text-slate-500">
+                        {users.filter(u => u.team_id === team.id).length} members
+                      </p>
+                    </div>
                   ))}
-                </tbody>
-              </table>
+                </div>
+              </div>
+            )}
+
+            {/* User Management Section */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+              <h2 className="text-2xl font-bold text-blue-900 mb-4">Users by Team</h2>
+              <p className="text-slate-600 mb-6">View and manage users organized by their teams</p>
+              
+              {/* Unassigned Users (Admin Only) */}
+              {user.role === 'admin' && users.filter(u => !u.team_id).length > 0 && (
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+                    <Users className="w-5 h-5 mr-2" />
+                    Unassigned Users ({users.filter(u => !u.team_id).length})
+                  </h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {users.filter(u => !u.team_id).map((u) => (
+                          <tr key={u.id}>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm font-medium text-gray-900">{u.name}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-500">{u.email}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              {editingUserId === u.id ? (
+                                <select
+                                  value={newRole}
+                                  onChange={(e) => setNewRole(e.target.value)}
+                                  className="px-3 py-1 border border-gray-300 rounded-md text-sm"
+                                >
+                                  <option value="">Select role...</option>
+                                  <option value="member">Member</option>
+                                  <option value="officer">Officer</option>
+                                  {user.role === 'admin' && (
+                                    <>
+                                      <option value="president">President</option>
+                                      <option value="admin">Admin</option>
+                                    </>
+                                  )}
+                                </select>
+                              ) : (
+                                <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full capitalize ${
+                                  u.role === 'admin' ? 'bg-purple-100 text-purple-800' :
+                                  u.role === 'president' ? 'bg-blue-100 text-blue-800' :
+                                  u.role === 'officer' ? 'bg-green-100 text-green-800' :
+                                  'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {u.role}
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <select
+                                value=""
+                                onChange={(e) => updateUserTeam(u.id, e.target.value)}
+                                className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-500"
+                              >
+                                <option value="">No team</option>
+                                {teams.map((t) => (
+                                  <option key={t.id} value={t.id}>{t.name}</option>
+                                ))}
+                              </select>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              {editingUserId === u.id ? (
+                                <div className="flex space-x-2">
+                                  <button
+                                    onClick={() => updateUserRole(u.id, newRole)}
+                                    disabled={!newRole}
+                                    className="text-green-600 hover:text-green-900 disabled:text-gray-400"
+                                  >
+                                    Save
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setEditingUserId(null);
+                                      setNewRole('');
+                                    }}
+                                    className="text-gray-600 hover:text-gray-900"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex space-x-3">
+                                  <button
+                                    onClick={() => {
+                                      setEditingUserId(u.id);
+                                      setNewRole(u.role);
+                                    }}
+                                    className="text-blue-600 hover:text-blue-900"
+                                  >
+                                    Edit
+                                  </button>
+                                  {user.role === 'admin' && u.id !== user.id && (
+                                    <button
+                                      onClick={() => deleteUser(u.id, u.name)}
+                                      className="text-red-600 hover:text-red-900"
+                                    >
+                                      Delete
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Users grouped by teams */}
+              {teams.filter(team => user.role === 'admin' || team.id === user.team_id).map((team) => (
+                <div key={team.id} className="mb-8">
+                  <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+                    <Users className="w-5 h-5 mr-2" />
+                    {team.name} ({users.filter(u => u.team_id === team.id).length} members)
+                  </h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                          {user.role === 'admin' && (
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team</th>
+                          )}
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {users.filter(u => u.team_id === team.id).map((u) => (
+                          <tr key={u.id}>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm font-medium text-gray-900">{u.name}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-500">{u.email}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              {editingUserId === u.id ? (
+                                <select
+                                  value={newRole}
+                                  onChange={(e) => setNewRole(e.target.value)}
+                                  className="px-3 py-1 border border-gray-300 rounded-md text-sm"
+                                >
+                                  <option value="">Select role...</option>
+                                  <option value="member">Member</option>
+                                  <option value="officer">Officer</option>
+                                  {user.role === 'admin' && (
+                                    <>
+                                      <option value="president">President</option>
+                                      <option value="admin">Admin</option>
+                                    </>
+                                  )}  
+                                </select>
+                              ) : (
+                                <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full capitalize ${
+                                  u.role === 'admin' ? 'bg-purple-100 text-purple-800' :
+                                  u.role === 'president' ? 'bg-blue-100 text-blue-800' :
+                                  u.role === 'officer' ? 'bg-green-100 text-green-800' :
+                                  'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {u.role}
+                                </span>
+                              )}
+                            </td>
+                            {user.role === 'admin' && (
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <select
+                                  value={u.team_id || ''}
+                                  onChange={(e) => updateUserTeam(u.id, e.target.value)}
+                                  className="px-3 py-1 border border-gray-300 rounded-md text-sm"
+                                >
+                                  <option value="">No team</option>
+                                  {teams.map(t => (
+                                    <option key={t.id} value={t.id}>{t.name}</option>
+                                  ))}
+                                </select>
+                              </td>
+                            )}
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              {editingUserId === u.id ? (
+                                <div className="flex space-x-2">
+                                  <button
+                                    onClick={() => updateUserRole(u.id, newRole)}
+                                    disabled={!newRole}
+                                    className="text-green-600 hover:text-green-900 disabled:text-gray-400"
+                                  >
+                                    Save
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setEditingUserId(null);
+                                      setNewRole('');
+                                    }}
+                                    className="text-gray-600 hover:text-gray-900"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex space-x-3">
+                                  <button
+                                    onClick={() => {
+                                      setEditingUserId(u.id);
+                                      setNewRole(u.role);
+                                    }}
+                                    className="text-blue-600 hover:text-blue-900"
+                                  >
+                                    Edit
+                                  </button>
+                                  {user.role === 'admin' && u.id !== user.id && (
+                                    <button
+                                      onClick={() => deleteUser(u.id, u.name)}
+                                      className="text-red-600 hover:text-red-900"
+                                    >
+                                      Delete
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Teams Tab (Admin Only) - Remove this section since it's now in Users tab */}
+        {activeTab === 'teams' && user.role === 'admin' && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+            <p className="text-center text-gray-500">Team management has been moved to the "Manage Users" tab</p>
+          </div>
+        )}
+
+        {/* Teams Tab (Admin Only) */}
+        {activeTab === 'teams' && user.role === 'admin' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-blue-900 mb-2">Team Management</h2>
+                  <p className="text-slate-600">
+                    Create and manage teams for organizing members, officers, and presidents
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowTeamForm(!showTeamForm);
+                    setTeamError('');
+                    setTeamSuccess('');
+                  }}
+                  className="px-4 py-2 bg-blue-900 text-white rounded-md hover:bg-blue-800 transition-colors flex items-center"
+                >
+                  <Users className="w-4 h-4 mr-2" />
+                  {showTeamForm ? 'Cancel' : 'Create Team'}
+                </button>
+              </div>
+
+              {teamSuccess && (
+                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md mb-6 flex items-center">
+                  <Check className="w-5 h-5 mr-2" />
+                  {teamSuccess}
+                </div>
+              )}
+
+              {teamError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6 flex items-center">
+                  <AlertCircle className="w-5 h-5 mr-2" />
+                  {teamError}
+                </div>
+              )}
+
+              {showTeamForm && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+                  <h3 className="text-lg font-semibold text-blue-900 mb-4">Create New Team</h3>
+                  <form onSubmit={handleTeamSubmit} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-blue-900 mb-2">
+                        Team Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={newTeam.name}
+                        onChange={handleTeamChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="e.g., Silicon Valley Team"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-blue-900 mb-2">
+                        Description (Optional)
+                      </label>
+                      <textarea
+                        name="description"
+                        value={newTeam.description}
+                        onChange={handleTeamChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Brief description of this team..."
+                        rows="3"
+                      />
+                    </div>
+                    <div className="flex space-x-3">
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="px-6 py-2 bg-blue-900 text-white rounded-md hover:bg-blue-800 transition-colors disabled:bg-gray-400"
+                      >
+                        {loading ? 'Creating...' : 'Create Team'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowTeamForm(false);
+                          setNewTeam({ name: '', description: '' });
+                          setTeamError('');
+                        }}
+                        className="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              {teams.length === 0 ? (
+                <div className="text-center py-12">
+                  <Users className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                  <p className="text-gray-500">No teams created yet</p>
+                  <p className="text-sm text-gray-400 mt-2">Create your first team to start organizing members</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Team Name
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Description
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Members
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Created
+                        </th>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {teams.map((team) => (
+                        <tr key={team.id}>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">{team.name}</div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="text-sm text-gray-500">{team.description || '-'}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-500">
+                              {users.filter(u => u.team_id === team.id).length} members
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-500">
+                              {new Date(team.created_at).toLocaleDateString()}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button
+                              onClick={() => deleteTeam(team.id)}
+                              className="text-red-600 hover:text-red-900"
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         )}

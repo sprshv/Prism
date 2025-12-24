@@ -56,6 +56,25 @@ async def register_member(
                 detail="Only admins can assign president or admin roles"
             )
 
+    # Team assignment logic
+    team_id = member_data.team_id
+    if current_user.role == UserRole.ADMIN:
+        # Admin can assign to any team or no team
+        pass
+    else:
+        # Officers and presidents can only register members to their own team
+        if not current_user.team_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="You must be assigned to a team to register members"
+            )
+        if team_id and team_id != current_user.team_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can only register members to your own team"
+            )
+        team_id = current_user.team_id  # Force their own team
+
     # Check if user already exists
     if db.users.find_one({"email": member_data.email}):
         raise HTTPException(
@@ -70,7 +89,8 @@ async def register_member(
         "role": member_data.role,
         "hashed_password": get_password_hash(default_password),
         "created_at": datetime.utcnow(),
-        "is_active": True
+        "is_active": True,
+        "team_id": team_id
     }
 
     result = db.users.insert_one(user_dict)
@@ -80,7 +100,8 @@ async def register_member(
         email=member_data.email,
         name=full_name,
         role=member_data.role,
-        default_password=default_password
+        default_password=default_password,
+        team_id=team_id
     )
 
 @router.get("/me", response_model=User)
@@ -92,7 +113,8 @@ async def get_current_user_info(current_user: UserInDB = Depends(get_current_act
         name=current_user.name,
         role=current_user.role,
         created_at=current_user.created_at,
-        is_active=current_user.is_active
+        is_active=current_user.is_active,
+        team_id=current_user.team_id
     )
 
 @router.post("/forgot-password")
@@ -240,7 +262,20 @@ event_router = APIRouter(prefix="/events", tags=["events"])
 async def get_events(current_user: UserInDB = Depends(get_current_active_user)):
     """Get all events (accessible to all authenticated users)"""
     db = get_database()
-    events = list(db.events.find().sort("date", 1))
+    
+    # Filter events based on user's team
+    query = {}
+    if current_user.role == UserRole.ADMIN:
+        # Admins see all events
+        pass
+    elif current_user.team_id:
+        # Members, officers, and presidents see only their team's events
+        query["team_id"] = current_user.team_id
+    else:
+        # Users without a team see only events without a team
+        query["team_id"] = None
+    
+    events = list(db.events.find(query).sort("date", 1))
 
     # Convert ObjectId to string
     for event in events:
@@ -257,6 +292,21 @@ async def create_event(
     """Create a new event (officers, president, admin)"""
     db = get_database()
 
+    # Officers and presidents can only create events for their team
+    team_id = event_data.team_id
+    if current_user.role in [UserRole.OFFICER, UserRole.PRESIDENT]:
+        if not current_user.team_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="You must be assigned to a team to create events"
+            )
+        if team_id and team_id != current_user.team_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can only create events for your own team"
+            )
+        team_id = current_user.team_id  # Force their own team
+
     event_dict = {
         "title": event_data.title,
         "date": event_data.date,
@@ -264,7 +314,8 @@ async def create_event(
         "location": event_data.location,
         "description": event_data.description,
         "created_by": current_user.email,
-        "created_at": datetime.utcnow()
+        "created_at": datetime.utcnow(),
+        "team_id": team_id
     }
 
     result = db.events.insert_one(event_dict)
@@ -346,6 +397,39 @@ async def update_user_role(
 
     return {"message": "User role updated successfully"}
 
+@user_router.patch("/{user_id}/team")
+async def update_user_team(
+    user_id: str,
+    team_update: dict,
+    current_user: UserInDB = Depends(get_current_admin)
+):
+    """Update a user's team (admin only)"""
+    db = get_database()
+
+    team_id = team_update.get("team_id")
+    
+    # Validate team exists if team_id is provided
+    if team_id:
+        team = db.teams.find_one({"_id": ObjectId(team_id)})
+        if not team:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Team not found"
+            )
+
+    result = db.users.update_one(
+        {"_id": ObjectId(user_id)},
+        {"$set": {"team_id": team_id}}
+    )
+
+    if result.modified_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    return {"message": "User team updated successfully"}
+
 @user_router.delete("/{user_id}")
 async def delete_user(
     user_id: str,
@@ -388,14 +472,25 @@ service_hours_router = APIRouter(prefix="/service-hours", tags=["service-hours"]
 
 @service_hours_router.get("/")
 async def get_service_hours(current_user: UserInDB = Depends(get_current_active_user)):
-    """Get service hours - all for admin/president, own for others"""
+    """Get service hours - all for admin, team members for president, own for others"""
     from auth import get_current_admin_or_president
     from models import UserRole
     db = get_database()
 
-    if current_user.role in [UserRole.ADMIN, UserRole.PRESIDENT]:
+    if current_user.role == UserRole.ADMIN:
+        # Admins see all service hours
         hours = list(db.service_hours.find().sort("created_at", -1))
+    elif current_user.role == UserRole.PRESIDENT:
+        # Presidents see service hours for members of their team
+        if current_user.team_id:
+            # Get all users in the same team
+            team_users = list(db.users.find({"team_id": current_user.team_id}))
+            team_user_ids = [str(user["_id"]) for user in team_users]
+            hours = list(db.service_hours.find({"user_id": {"$in": team_user_ids}}).sort("created_at", -1))
+        else:
+            hours = []
     else:
+        # Members and officers see only their own hours
         hours = list(db.service_hours.find({"user_id": current_user.id}).sort("created_at", -1))
 
     for hour in hours:
@@ -442,6 +537,38 @@ async def approve_service_hour(
     from auth import get_current_admin_or_president
     from models import ServiceHourApproval, ServiceHourStatus
     db = get_database()
+
+    # Get the service hour entry
+    try:
+        service_hour = db.service_hours.find_one({"_id": ObjectId(hour_id)})
+    except:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid service hour ID"
+        )
+
+    if not service_hour:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Service hour entry not found"
+        )
+
+    # Presidents can only approve hours for users in their team
+    if current_user.role == UserRole.PRESIDENT:
+        # Get the user who submitted the hours
+        submitter = db.users.find_one({"_id": ObjectId(service_hour["user_id"])})
+        if not submitter:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        
+        # Check if the submitter is in the same team
+        if submitter.get("team_id") != current_user.team_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can only approve service hours for members of your team"
+            )
 
     update_data = {
         "status": approval.status,

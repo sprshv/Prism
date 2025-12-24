@@ -13,6 +13,7 @@ class UserBase(BaseModel):
     email: EmailStr
     name: str
     role: UserRole = UserRole.MEMBER
+    team_id: Optional[str] = None
 
 class UserCreate(UserBase):
     password: str
@@ -22,6 +23,7 @@ class UserInDB(UserBase):
     hashed_password: str
     created_at: datetime
     is_active: bool = True
+    team_id: Optional[str] = None
 
     class Config:
         populate_by_name = True
@@ -30,6 +32,7 @@ class User(UserBase):
     id: str
     created_at: datetime
     is_active: bool = True
+    team_id: Optional[str] = None
 
 class Token(BaseModel):
     access_token: str
@@ -55,12 +58,14 @@ class RegisterMemberRequest(BaseModel):
     last_name: str
     email: EmailStr
     role: UserRole = UserRole.MEMBER
+    team_id: Optional[str] = None
 
 class RegisterMemberResponse(BaseModel):
     email: str
     name: str
     role: str
     default_password: str
+    team_id: Optional[str] = None
 
 class EventBase(BaseModel):
     title: str
@@ -68,6 +73,7 @@ class EventBase(BaseModel):
     time: str
     location: str
     description: str
+    team_id: Optional[str] = None
 
 class EventCreate(EventBase):
     pass
@@ -76,6 +82,7 @@ class EventInDB(EventBase):
     id: str = Field(alias="_id")
     created_by: str
     created_at: datetime
+    team_id: Optional[str] = None
 
     class Config:
         populate_by_name = True
@@ -84,6 +91,7 @@ class Event(EventBase):
     id: str
     created_by: str
     created_at: datetime
+    team_id: Optional[str] = None
 
 # Service Hours Models
 class ServiceHourStatus(str, Enum):
@@ -132,3 +140,28 @@ class ServiceHourApproval(BaseModel):
 # User Management Models
 class UpdateUserRole(BaseModel):
     role: UserRole
+
+# Team Models
+class TeamBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+
+class TeamCreate(TeamBase):
+    pass
+
+class TeamUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+
+class TeamInDB(TeamBase):
+    id: str = Field(alias="_id")
+    created_at: datetime
+    created_by: str
+
+    class Config:
+        populate_by_name = True
+
+class Team(TeamBase):
+    id: str
+    created_at: datetime
+    created_by: str
