@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Home, BookOpen, Users, FileText, GraduationCap, FolderOpen, Award, Newspaper, Mail, LogIn, Check, AlertCircle, Calendar, Lightbulb, MapPin } from 'lucide-react';
+import { Home, BookOpen, Users, FileText, GraduationCap, FolderOpen, Award, Newspaper, Mail, LogIn, Check, AlertCircle, Calendar, Lightbulb, MapPin, Instagram, Briefcase } from 'lucide-react';
 import { API_URL } from './config';
 
 // Schools Page
@@ -247,15 +247,15 @@ const LeadershipPage = () => {
     { icon: '🎯', title: 'Responsible', desc: 'We take ownership of our commitments and maintain high standards of professionalism.' }
   ];
 
-  const positions = [
-    { icon: '👑', title: 'President', desc: 'Oversees all PRISM operations and strategic direction', responsibilities: ['Lead leadership meetings', 'Manage organizational vision', 'Represent PRISM externally', 'Coordinate with mentors'], color: 'bg-purple-50 border-purple-200' },
-    { icon: '📢', title: 'PR & Communications', desc: 'Manages public relations and program promotion', responsibilities: ['Social media management', 'Marketing materials', 'School outreach', 'Event promotion'], color: 'bg-green-50 border-green-200' },
-    { icon: '📅', title: 'VP of Activities', desc: 'Coordinates workshops and educational activities', responsibilities: ['Schedule workshops with partner elementary schools', 'Develop age-appropriate STEM curriculum and activities', 'Train mentors on presentation and teaching techniques', 'Evaluate program effectiveness and student engagement'], color: 'bg-red-50 border-red-200' },
-    { icon: '🎯', title: 'Events Manager', desc: 'Manages event logistics, resources, and coordination', responsibilities: ['Coordinate transportation and materials for workshops', 'Maintain inventory of educational supplies and equipment', 'Handle event planning and execution logistics', 'Manage event budgets and resource allocation'], color: 'bg-blue-50 border-blue-200' },
-    { icon: '💛', title: 'VP of Community Services', desc: 'Leads community outreach and service initiatives', responsibilities: ['Develop community service projects and partnerships', 'Coordinate volunteer opportunities for mentors', 'Engage with local organizations and nonprofits', 'Organize community impact events and initiatives'], color: 'bg-yellow-50 border-yellow-200' },
-    { icon: '🌐', title: 'Director of Outreach', desc: 'Expands program reach and builds external partnerships', responsibilities: ['Identify and connect with new partner schools', 'Build relationships with STEM organizations', 'Coordinate with college mentor programs', 'Develop strategies for program expansion'], color: 'bg-orange-50 border-orange-200' },
-    { icon: '👥', title: 'Membership Director', desc: 'Manages mentor recruitment and membership engagement', responsibilities: ['Recruit and onboard new high school and college mentors', 'Coordinate mentor training and development programs', 'Maintain mentor database and participation records', 'Plan team building and member appreciation events'], color: 'bg-pink-50 border-pink-200' },
-    { icon: '💬', title: 'Communications Officer', desc: 'Writers and makers of website, digital communications', responsibilities: ['Maintain and update the PRISM website', 'Create digital content and newsletters', 'Manage internal team communications', 'Document program activities and create reports'], color: 'bg-indigo-50 border-indigo-200' }
+  const currentOfficers = [
+    { icon: '👑', title: 'Chief Executive Officers', names: ['Rajeev Hotlani', 'Brian Ferreira'], desc: 'Overseeing all PRISM operations and strategic direction', color: 'bg-purple-50 border-purple-200' },
+    { icon: '💻', title: 'Chief Technology Officer', names: ['Sparsh Virwaney'], desc: 'Leading technical initiatives and digital infrastructure', color: 'bg-blue-50 border-blue-200' },
+    { icon: '📢', title: 'Chief Marketing Officer', names: ['Marcus Santos'], desc: 'Managing public relations and program promotion', color: 'bg-green-50 border-green-200' }
+  ];
+
+  const openPositions = [
+    { icon: '💰', title: 'Chief Financial Officer', desc: 'Taking care of funding and managing funds', responsibilities: ['Manage organizational budget and financial planning', 'Seek funding opportunities and grants', 'Track expenses and financial reports', 'Ensure fiscal responsibility and transparency'], color: 'bg-yellow-50 border-yellow-200' },
+    { icon: '📅', title: 'Chief Activities Officer', desc: 'The force behind workshop curriculums', responsibilities: ['Design engaging STEM workshop curriculums', 'Coordinate workshop schedules and logistics', 'Train mentors on teaching methodologies', 'Evaluate program effectiveness and curriculum quality'], color: 'bg-orange-50 border-orange-200' }
   ];
 
   return (
@@ -298,10 +298,43 @@ const LeadershipPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center space-x-3 mb-12">
             <Award className="w-8 h-8 text-yellow-600" />
-            <h2 className="text-3xl font-bold text-blue-900">Leadership Positions</h2>
+            <h2 className="text-3xl font-bold text-blue-900">Current Leadership Team</h2>
           </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {currentOfficers.map((officer, i) => (
+              <div key={i} className={`bg-white rounded-xl p-8 border-2 ${officer.color}`}>
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="w-14 h-14 bg-yellow-100 rounded-lg flex items-center justify-center text-3xl">
+                    {officer.icon}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-blue-900">{officer.title}</h3>
+                  </div>
+                </div>
+                <p className="text-slate-600 mb-4">{officer.desc}</p>
+                <div className="space-y-2">
+                  {officer.names.map((name, j) => (
+                    <div key={j} className="flex items-center">
+                      <span className="w-2 h-2 bg-yellow-500 rounded-full mr-3"></span>
+                      <span className="text-slate-700 font-semibold">{name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center space-x-3 mb-12">
+            <Briefcase className="w-8 h-8 text-yellow-600" />
+            <h2 className="text-3xl font-bold text-blue-900">Open Positions</h2>
+          </div>
+          <p className="text-slate-600 mb-8 text-lg">Join our leadership team! We're looking for passionate students to fill these key roles:</p>
           <div className="grid md:grid-cols-2 gap-8">
-            {positions.map((position, i) => (
+            {openPositions.map((position, i) => (
               <div key={i} className={`bg-white rounded-xl p-8 border-2 ${position.color}`}>
                 <div className="flex items-center space-x-4 mb-6">
                   <div className="w-16 h-16 bg-yellow-100 rounded-lg flex items-center justify-center text-3xl">
@@ -309,7 +342,7 @@ const LeadershipPage = () => {
                   </div>
                   <div>
                     <h3 className="text-2xl font-bold text-blue-900">{position.title}</h3>
-                    <p className="text-slate-600" dangerouslySetInnerHTML={{ __html: position.desc }}></p>
+                    <p className="text-slate-600">{position.desc}</p>
                   </div>
                 </div>
                 <h4 className="font-semibold text-blue-900 mb-3">Key Responsibilities:</h4>
@@ -508,14 +541,27 @@ const ContactPage = () => {
         <div className="grid md:grid-cols-2 gap-12">
           <div>
             <h2 className="text-2xl font-bold text-blue-900 mb-6">Get in Touch</h2>
-            <div className="space-y-6">
+            <div className="space-y-3">
               <div className="flex items-start space-x-4">
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Mail className="w-6 h-6 text-blue-900" />
                 </div>
-                <div>
-                  <h3 className="font-semibold text-blue-900 mb-1">Email</h3>
-                  <p className="text-slate-600">prismprogramscv@gmail.com</p>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-blue-900 mb-2">Email</h3>
+                  <div className="space-y-1">
+                    <div>
+                      <p className="text-sm font-medium text-blue-900">Los Angeles</p>
+                      <a href="mailto:prismprogramscv@gmail.com" className="text-slate-600 hover:text-blue-900 transition-colors">
+                        prismprogramscv@gmail.com
+                      </a>
+                    </div>
+                    <div className="mt-2">
+                      <p className="text-sm font-medium text-blue-900">San Diego</p>
+                      <a href="mailto:prismprogramsandiego@gmail.com" className="text-slate-600 hover:text-blue-900 transition-colors">
+                        prismprogramsandiego@gmail.com
+                      </a>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div className="flex items-start space-x-4">
@@ -535,6 +581,41 @@ const ContactPage = () => {
                   <h3 className="font-semibold text-blue-900 mb-1">For Students</h3>
                   <p className="text-slate-600">Want to become a <span className="text-yellow-500">PRISM</span> mentor? Apply through our application page or reach out with questions.</p>
                 </div>
+              </div>
+            </div>
+
+            <div className="mt-8 pt-8 border-t border-gray-200">
+              <h2 className="text-2xl font-bold text-blue-900 mb-6">Follow Us</h2>
+              <div className="space-y-4">
+                <a
+                  href="https://www.instagram.com/prism_scv/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg hover:from-purple-100 hover:to-pink-100 transition-all"
+                >
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Instagram className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-blue-900">Los Angeles</h3>
+                    <p className="text-sm text-slate-600">@prism_scv</p>
+                  </div>
+                </a>
+
+                <a
+                  href="https://www.instagram.com/prism_at_ucsandiego/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg hover:from-purple-100 hover:to-pink-100 transition-all"
+                >
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Instagram className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-blue-900">San Diego</h3>
+                    <p className="text-sm text-slate-600">@prism_at_ucsandiego</p>
+                  </div>
+                </a>
               </div>
             </div>
           </div>
@@ -3272,6 +3353,7 @@ const ApplicationPage = () => {
     email: '',
     phone: '',
     location: '',
+    team: '',
     schoolType: '',
     school: '',
     grade: '',
@@ -3283,7 +3365,11 @@ const ApplicationPage = () => {
     experience: '',
     availability: '',
     interestedInOfficer: false,
+    officerRole: '',
+    leadershipExperience: '',
+    whyOfficerRole: '',
     interestedInSoftwareDev: false,
+    softwareDevExperience: '',
     understandsCommitment: false,
     agreeToContact: false
   });
@@ -3305,9 +3391,18 @@ const ApplicationPage = () => {
     if (!formData.email.trim()) newErrors.email = 'Email is required';
     else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email is invalid';
     if (!formData.location.trim()) newErrors.location = 'Location is required';
+    if (!formData.team) newErrors.team = 'Please select which team you want to join';
     if (!formData.school.trim()) newErrors.school = 'School/University is required';
     if (!formData.schoolType) newErrors.schoolType = 'Please select if you are in high school or college';
     if (!formData.grade) newErrors.grade = 'Grade is required';
+    if (formData.interestedInOfficer) {
+      if (!formData.officerRole) newErrors.officerRole = 'Please select an officer role';
+      if (!formData.leadershipExperience.trim()) newErrors.leadershipExperience = 'Leadership experience is required for officer positions';
+      if (!formData.whyOfficerRole.trim()) newErrors.whyOfficerRole = 'Please explain why you want this officer role';
+    }
+    if (formData.interestedInSoftwareDev) {
+      if (!formData.softwareDevExperience.trim()) newErrors.softwareDevExperience = 'Please describe your software development experience';
+    }
     if (!formData.understandsCommitment) newErrors.understandsCommitment = 'You must acknowledge the commitment required';
     return newErrors;
   };
@@ -3344,6 +3439,7 @@ const ApplicationPage = () => {
           email: '',
           phone: '',
           location: '',
+          team: '',
           schoolType: '',
           school: '',
           grade: '',
@@ -3355,7 +3451,11 @@ const ApplicationPage = () => {
           experience: '',
           availability: '',
           interestedInOfficer: false,
+          officerRole: '',
+          leadershipExperience: '',
+          whyOfficerRole: '',
           interestedInSoftwareDev: false,
+          softwareDevExperience: '',
           understandsCommitment: false,
           agreeToContact: false
         });
@@ -3525,6 +3625,23 @@ const ApplicationPage = () => {
 
             <div>
               <label className="block text-sm font-medium text-blue-900 mb-2">
+                Which PRISM team would you like to join? <span className="text-red-500">*</span>
+              </label>
+              <select
+                name="team"
+                value={formData.team}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Select a team</option>
+                <option value="Los Angeles">Los Angeles</option>
+                <option value="San Diego">San Diego</option>
+              </select>
+              {errors.team && <p className="text-red-500 text-sm mt-1">{errors.team}</p>}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-blue-900 mb-2">
                 I am currently a <span className="text-red-500">*</span>
               </label>
               <select
@@ -3675,7 +3792,7 @@ const ApplicationPage = () => {
             </div>
 
             <div className="space-y-3">
-              <label className="flex items-start">
+              <label className="flex items-start p-3 bg-blue-50 border border-blue-200 rounded-md">
                 <input
                   type="checkbox"
                   name="interestedInOfficer"
@@ -3683,13 +3800,63 @@ const ApplicationPage = () => {
                   onChange={handleChange}
                   className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
-                <span className="ml-2 text-sm text-gray-700">
-                  I'm also interested in applying for an officer position<br />
-                  <span className="text-xs text-gray-500">Officer positions involve additional leadership responsibilities and commitment</span>
+                <span className="ml-2 text-sm text-blue-900 font-medium">
+                  Apply for an officer position
                 </span>
               </label>
 
-              <label className="flex items-start">
+              {formData.interestedInOfficer && (
+                <div className="ml-6 space-y-4 p-4 bg-blue-50 rounded-md border border-blue-200">
+                  <div>
+                    <label className="block text-sm font-medium text-blue-900 mb-2">
+                      Preferred Officer Role <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      name="officerRole"
+                      value={formData.officerRole}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">Select an officer role</option>
+                      <option value="Chief Financial Officer">Chief Financial Officer</option>
+                      <option value="Chief Activities Officer">Chief Activities Officer</option>
+                    </select>
+                    {errors.officerRole && <p className="text-red-500 text-sm mt-1">{errors.officerRole}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-blue-900 mb-2">
+                      Leadership Experience <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      name="leadershipExperience"
+                      value={formData.leadershipExperience}
+                      onChange={handleChange}
+                      rows="4"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Describe your leadership experience (clubs, sports, student government, community organizations, etc.)"
+                    ></textarea>
+                    {errors.leadershipExperience && <p className="text-red-500 text-sm mt-1">{errors.leadershipExperience}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-blue-900 mb-2">
+                      Why This Officer Role? <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      name="whyOfficerRole"
+                      value={formData.whyOfficerRole}
+                      onChange={handleChange}
+                      rows="4"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Why are you interested in this specific officer position? What skills and ideas would you bring to this role?"
+                    ></textarea>
+                    {errors.whyOfficerRole && <p className="text-red-500 text-sm mt-1">{errors.whyOfficerRole}</p>}
+                  </div>
+                </div>
+              )}
+
+              <label className="flex items-start p-3 bg-green-50 border border-green-200 rounded-md">
                 <input
                   type="checkbox"
                   name="interestedInSoftwareDev"
@@ -3697,11 +3864,30 @@ const ApplicationPage = () => {
                   onChange={handleChange}
                   className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
-                <span className="ml-2 text-sm text-gray-700">
-                  I'm interested in applying for a software development role<br />
-                  <span className="text-xs text-gray-500">Help develop and maintain the PRISM website and digital tools</span>
+                <span className="ml-2 text-sm text-green-900 font-medium">
+                  Apply for a software development role
+                  <span className="block text-xs text-slate-600 font-normal">Share coding languages, projects, GitHub, or relevant coursework.</span>
                 </span>
               </label>
+
+              {formData.interestedInSoftwareDev && (
+                <div className="ml-6 space-y-4 p-4 bg-green-50 rounded-md border border-green-200">
+                  <div>
+                    <label className="block text-sm font-medium text-blue-900 mb-2">
+                      Software Development Experience <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      name="softwareDevExperience"
+                      value={formData.softwareDevExperience}
+                      onChange={handleChange}
+                      rows="5"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Describe your programming experience, languages you know (e.g., JavaScript, Python, React), projects you've built, GitHub profile, or any relevant coursework..."
+                    ></textarea>
+                    {errors.softwareDevExperience && <p className="text-red-500 text-sm mt-1">{errors.softwareDevExperience}</p>}
+                  </div>
+                </div>
+              )}
 
               <label className="flex items-start">
                 <input

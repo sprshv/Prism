@@ -16,6 +16,12 @@ services:
         value: HS256
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
         value: 30
+      - key: RESEND_API_KEY
+        sync: false  # Set this in Render dashboard
+      - key: FRONTEND_URL
+        sync: false  # Set this in Render dashboard
+      - key: EMAIL_FROM
+        value: "PRISM <prismprogramscv@gmail.com>"
     healthCheckPath: /health
 
   # Frontend Static Site

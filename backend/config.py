@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     
     # Email settings
     resend_api_key: str = ""
-    email_from: str = "PRISM <onboarding@resend.dev>"  # Update this after domain verification
+    email_from: str = "PRISM <application@prism.publicvm.com>"
     
     # Frontend URL for password reset links
     frontend_url: str = "https://prism-frontend-srf1.onrender.com"
