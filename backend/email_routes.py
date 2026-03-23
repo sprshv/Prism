@@ -49,7 +49,7 @@ def send_email(to_email: str, subject: str, body: str, text_version: str = None)
             "to": [to_email],
             "subject": subject,
             "html": body,
-            "reply_to": "prismprogramscv@gmail.com",
+            "reply_to": "application@prism.publicvm.com",
         }
         
         # Add plain text version if provided (helps with spam filters)
