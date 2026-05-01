@@ -114,7 +114,8 @@ async def get_current_user_info(current_user: UserInDB = Depends(get_current_act
         role=current_user.role,
         created_at=current_user.created_at,
         is_active=current_user.is_active,
-        team_id=current_user.team_id
+        team_id=current_user.team_id,
+        team=current_user.team
     )
 
 @router.post("/forgot-password")
@@ -376,12 +377,12 @@ async def update_user_role(
     from models import UpdateUserRole
     db = get_database()
 
-    # Only admin email can assign president or admin roles
-    if role_update.role in [UserRole.PRESIDENT, UserRole.ADMIN]:
+    # Only admin email can assign president, admin, or executive roles
+    if role_update.role in [UserRole.PRESIDENT, UserRole.ADMIN, UserRole.EXECUTIVE]:
         if current_user.email != "prismprogramscv@gmail.com":
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Only the main admin can assign president or admin roles"
+                detail="Only the main admin can assign president, admin, or executive roles"
             )
 
     result = db.users.update_one(

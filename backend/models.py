@@ -6,6 +6,7 @@ from enum import Enum
 class UserRole(str, Enum):
     MEMBER = "member"
     OFFICER = "officer"
+    EXECUTIVE = "executive"
     PRESIDENT = "president"
     ADMIN = "admin"
 
@@ -14,6 +15,7 @@ class UserBase(BaseModel):
     name: str
     role: UserRole = UserRole.MEMBER
     team_id: Optional[str] = None
+    team: Optional[str] = None  # Team name: "Los Angeles" or "San Diego"
 
 class UserCreate(UserBase):
     password: str

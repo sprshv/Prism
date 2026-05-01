@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Home, BookOpen, Users, FileText, GraduationCap, FolderOpen, Award, Newspaper, Mail, LogIn, Check, AlertCircle, Calendar, Lightbulb, MapPin, Instagram, Briefcase } from 'lucide-react';
+import { Home, BookOpen, Users, FileText, GraduationCap, FolderOpen, Award, Newspaper, Mail, LogIn, Check, AlertCircle, Calendar, Lightbulb, MapPin, Instagram, Briefcase, Eye } from 'lucide-react';
 import { API_URL } from './config';
+import { TrackApplicationPage } from './TrackApplicationPage';
+import { ApplicationsTab } from './ApplicationsTab';
 
 // Schools Page
 const SchoolsPage = () => {
@@ -1120,6 +1122,12 @@ const DashboardPage = ({ user, logout }) => {
 
   // User management handlers
   const updateUserRole = async (userId, newRole) => {
+    // Prevent non-admins from assigning executive role
+    if (newRole === 'executive' && user.role !== 'admin') {
+      alert('Only admins can assign the executive role');
+      return;
+    }
+
     try {
       const token = sessionStorage.getItem('prism_token');
       const response = await fetch(`${API_URL}/users/${userId}/role`, {
@@ -1281,6 +1289,19 @@ const DashboardPage = ({ user, logout }) => {
               >
                 <Users className="w-5 h-5 inline mr-2" />
                 Manage Users
+              </button>
+            )}
+            {(user.role === 'admin' || user.role === 'executive' || user.role === 'president') && (
+              <button
+                onClick={() => setActiveTab('applications')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'applications'
+                    ? 'border-blue-900 text-blue-900'
+                    : 'border-transparent text-gray-500 hover:text-blue-800 hover:border-gray-300'
+                }`}
+              >
+                <Eye className="w-5 h-5 inline mr-2" />
+                Applications
               </button>
             )}
             <button
@@ -1590,6 +1611,11 @@ const DashboardPage = ({ user, logout }) => {
               </button>
             </form>
           </div>
+        )}
+
+        {/* Applications Tab */}
+        {activeTab === 'applications' && (user.role === 'admin' || user.role === 'executive' || user.role === 'president') && (
+          <ApplicationsTab user={user} token={sessionStorage.getItem('prism_token')} />
         )}
 
         {/* Resources Tab */}
@@ -1963,6 +1989,7 @@ const DashboardPage = ({ user, logout }) => {
                                   <option value="officer">Officer</option>
                                   {user.role === 'admin' && (
                                     <>
+                                      <option value="executive">Executive</option>
                                       <option value="president">President</option>
                                       <option value="admin">Admin</option>
                                     </>
@@ -1972,6 +1999,7 @@ const DashboardPage = ({ user, logout }) => {
                                 <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full capitalize ${
                                   u.role === 'admin' ? 'bg-purple-100 text-purple-800' :
                                   u.role === 'president' ? 'bg-blue-100 text-blue-800' :
+                                  u.role === 'executive' ? 'bg-red-100 text-red-800' :
                                   u.role === 'officer' ? 'bg-green-100 text-green-800' :
                                   'bg-gray-100 text-gray-800'
                                 }`}>
@@ -2082,6 +2110,7 @@ const DashboardPage = ({ user, logout }) => {
                                   <option value="officer">Officer</option>
                                   {user.role === 'admin' && (
                                     <>
+                                      <option value="executive">Executive</option>
                                       <option value="president">President</option>
                                       <option value="admin">Admin</option>
                                     </>
@@ -2091,6 +2120,7 @@ const DashboardPage = ({ user, logout }) => {
                                 <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full capitalize ${
                                   u.role === 'admin' ? 'bg-purple-100 text-purple-800' :
                                   u.role === 'president' ? 'bg-blue-100 text-blue-800' :
+                                  u.role === 'executive' ? 'bg-red-100 text-red-800' :
                                   u.role === 'officer' ? 'bg-green-100 text-green-800' :
                                   'bg-gray-100 text-gray-800'
                                 }`}>
@@ -2772,6 +2802,7 @@ export default function App() {
             {currentPath === '/leadership' && <LeadershipPage />}
             {currentPath === '/news' && <NewsPage />}
             {currentPath === '/contact' && <ContactPage />}
+            {currentPath === '/track-application' && <TrackApplicationPage />}
             {currentPath === '/auth' && !user && <AuthPage login={login} />}
             {currentPath === '/reset-password' && <ResetPasswordPage />}
             {currentPath === '/dashboard' && user && <DashboardPage user={user} logout={logout} />}

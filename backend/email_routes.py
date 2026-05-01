@@ -41,11 +41,11 @@ class ApplicationEmail(BaseModel):
     understandsCommitment: bool
     agreeToContact: Optional[bool] = False
 
-def send_email(to_email: str, subject: str, body: str, text_version: str = None):
+def send_email(to_email: str, subject: str, body: str, text_version: str = None, from_email: str = None):
     """Send email using Resend API"""
     try:
         params = {
-            "from": settings.email_from,
+            "from": from_email or settings.email_from,
             "to": [to_email],
             "subject": subject,
             "html": body,
@@ -91,7 +91,50 @@ async def send_contact_email(contact: ContactEmail):
 
 @email_router.post("/application")
 async def send_application_email(application: ApplicationEmail):
-    """Send application form email"""
+    """Send application form email and save to PostgreSQL"""
+    from postgres_db import SessionLocal
+    from sql_models import Application as SQLApplication
+    import uuid
+    
+    # Create tracking token for public status checking
+    tracking_token = str(uuid.uuid4())
+    
+    # Save application to PostgreSQL
+    db = SessionLocal()
+    try:
+        sql_app = SQLApplication(
+            id=str(uuid.uuid4()),
+            firstName=application.firstName,
+            lastName=application.lastName,
+            email=application.email,
+            phone=application.phone,
+            location=application.location,
+            team=application.team,
+            schoolType=application.schoolType,
+            school=application.school,
+            grade=application.grade,
+            weightedGPA=application.weightedGPA,
+            unweightedGPA=application.unweightedGPA,
+            stemClasses=application.stemClasses,
+            programInterests=application.programInterests,
+            whyJoin=application.whyJoin,
+            experience=application.experience,
+            availability=application.availability,
+            interestedInOfficer="true" if application.interestedInOfficer else "false",
+            officerRole=application.officerRole,
+            leadershipExperience=application.leadershipExperience,
+            whyOfficerRole=application.whyOfficerRole,
+            interestedInSoftwareDev="true" if application.interestedInSoftwareDev else "false",
+            softwareDevExperience=application.softwareDevExperience,
+            understandsCommitment="true" if application.understandsCommitment else "false",
+            agreeToContact="true" if application.agreeToContact else "false",
+            trackingToken=tracking_token,
+        )
+        db.add(sql_app)
+        db.commit()
+    finally:
+        db.close()
+    
     subject = f"🎓 New PRISM Mentor Application - {application.firstName} {application.lastName}"
     body = f"""
     <html>
@@ -340,10 +383,56 @@ async def send_application_email(application: ApplicationEmail):
     else:  # Default to Los Angeles
         recipient_email = "prismprogramscv@gmail.com"
     
-    success = send_email(recipient_email, subject, body)
+    success = send_email(recipient_email, subject, body, from_email="onboarding@resend.dev")
+    
+    # Send confirmation email to applicant with tracking link
+    from gmail_sender import send_gmail
+    from config import settings
+    
+    confirmation_email = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background-color: #003d7a; padding: 20px; text-align: center; border-radius: 8px;">
+            <h1 style="color: #fdc830; margin: 0;">Application Received! ✓</h1>
+        </div>
+        
+        <div style="padding: 30px; background-color: #f9fafb;">
+            <p>Hi {application.firstName},</p>
+            <p>Thank you for submitting your PRISM application! We've received your submission and will review it shortly.</p>
+            
+            <h3 style="color: #003d7a; margin-top: 25px;">Track Your Application</h3>
+            <p>You can check the status of your application at any time using this link:</p>
+            
+            <div style="background-color: #f0f4f8; padding: 15px; border-radius: 6px; margin: 20px 0; text-align: center;">
+                <p><a href="https://prism.publicvm.com/#/track-application/{tracking_token}" style="background-color: #003d7a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Check Application Status</a></p>
+            </div>
+            
+            <p style="color: #666; font-size: 14px;">Or use this tracking token: <strong>{tracking_token}</strong></p>
+            
+            <p>We'll notify you via email once we've made a decision on your application.</p>
+            
+            <p>Thank you for your interest in PRISM!</p>
+            <p>Best regards,<br>The PRISM Team</p>
+        </div>
+    </body>
+    </html>
+    """
+    
+    try:
+        send_gmail(
+            to_email=application.email,
+            subject="Application Confirmation - PRISM",
+            html_body=confirmation_email
+        )
+    except Exception as e:
+        print(f"Warning: Could not send confirmation email to applicant: {e}")
     
     if success:
-        return {"message": "Application submitted successfully"}
+        return {
+            "message": "Application submitted successfully",
+            "trackingToken": tracking_token,
+            "trackingUrl": f"https://prism.publicvm.com/#/track-application/{tracking_token}"
+        }
     else:
         raise HTTPException(status_code=500, detail="Failed to send email")
 
